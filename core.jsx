@@ -222,10 +222,17 @@ const CLIENTES_LIST = [
 ];
 
 const POSTVENTA = [
-  { id:'PV-024', cliente:'Don Guillermo', lote:'L-2025-002', motivo:'Recalce - mortandad post-plantación', plantas: 1280, estado:'Aprobado',      fecha:'2026-01-12' },
+  { id:'PV-024', cliente:'Don Guillermo', lote:'L-2025-002', motivo:'Recalce - mortandad post-plantación', plantas: 1280, estado:'Aprobado',      fecha:'2026-01-12', despacho:'2026-01-26' },
   { id:'PV-025', cliente:'Agrolatina',    lote:'L-2025-001', motivo:'Cambio de variedad por solicitud',     plantas: 320,  estado:'En revisión',   fecha:'2026-02-03' },
-  { id:'PV-026', cliente:'Florida Blanca',lote:'L-2025-011', motivo:'Recalce barbadas',                     plantas: 940,  estado:'Aprobado',      fecha:'2026-02-20' },
+  { id:'PV-026', cliente:'Florida Blanca',lote:'L-2025-011', motivo:'Recalce barbadas',                     plantas: 940,  estado:'Aprobado',      fecha:'2026-02-20', despacho:'2026-03-04' },
   { id:'PV-027', cliente:'AIB',           lote:'L-2025-004', motivo:'Reclamo calidad - daño nematodos',     plantas: 220,  estado:'Pendiente',     fecha:'2026-03-04' },
+];
+
+const ACTIVITY_TASKS = [
+  { id:'ACT-001', fecha:'2026-05-03', tipo:'Uso material', actividad:'Injertación AIB', responsable:'Sala injertación', lote:'L-2025-004', material:'Cinta de injerto biodegradable', cantidad:1800, unidad:'m', estado:'Planificada', impacto:'descuento_bodega', alarma:'Descontar bodega al ejecutar' },
+  { id:'ACT-002', fecha:'2026-05-05', tipo:'Recepción', actividad:'Ingreso patrones Salt Creek', responsable:'Bodega', lote:'PAT-SC-07', material:'Patrón Salt Creek', cantidad:24000, unidad:'un', estado:'Confirmada', impacto:'utilizacion_anunciada', alarma:'Actualiza disponibilidad de patrones' },
+  { id:'ACT-003', fecha:'2026-05-12', tipo:'Uso material', actividad:'Siembra Agrolatina', responsable:'Producción', lote:'L-2025-001', material:'Bolsa polietileno 4L', cantidad:62832, unidad:'un', estado:'Planificada', impacto:'stock_out', alarma:'Riesgo de quiebre si no llega reposición' },
+  { id:'ACT-004', fecha:'2026-05-15', tipo:'Control', actividad:'Auditoría de sustrato', responsable:'Calidad', lote:'BOD-01', material:'Sustrato turba premium', cantidad:1200, unidad:'kg', estado:'Pendiente', impacto:'alarma_general', alarma:'Validar humedad antes de uso' },
 ];
 
 // Notifications demo
@@ -246,7 +253,7 @@ const PROFILES = {
     iconClass:'',
     badges:['Todo el sistema'],
     avatar:'AD', email:'admin@vivelt ambo.cl',
-    modules:['dashboard','contracts','materials','calendar','lots','dds','quality','money','client','postsale','masters','directory'],
+    modules:['dashboard','contracts','materials','activities','calendar','lots','quality','money','client','postsale','masters','directory'],
   },
   directorio: {
     id:'directorio',
@@ -256,7 +263,7 @@ const PROFILES = {
     iconClass:'sun',
     badges:['Estado de Resultados','Filtros gerenciales'],
     avatar:'DR', email:'directorio@viveroseltambo.cl',
-    modules:['directory'],
+    modules:['directory','client','alerts','postsale'],
   },
   calidad: {
     id:'calidad',
@@ -281,12 +288,12 @@ const PROFILES = {
   produccion: {
     id:'produccion',
     nombre:'Producción',
-    desc:'Materiales, calendario de injertación, lotes, DDS y liberación de calidad.',
+    desc:'Materiales, calendario, actividades, lotes y liberación de calidad.',
     icon:'sprout',
     iconClass:'',
-    badges:['Lotes','DDS','Calidad'],
+    badges:['Lotes','Actividades','Calidad'],
     avatar:'PR', email:'produccion@viveroseltambo.cl',
-    modules:['dashboard','materials','calendar','lots','dds','quality'],
+    modules:['dashboard','materials','activities','calendar','lots','quality'],
   },
   campo: {
     id:'campo',
@@ -307,13 +314,14 @@ const MODULES = {
   client:       { label:'Vista por cliente',   icon:'client',     group:'Comercial' },
   postsale:     { label:'Postventa / recalce', icon:'postsale',   group:'Comercial' },
   materials:    { label:'Análisis de materiales', icon:'materials', group:'Producción' },
-  calendar:     { label:'Calendario injertación', icon:'calendar', group:'Producción' },
-  lots:         { label:'Lotes de injerto',    icon:'lots',       group:'Producción' },
-  dds:          { label:'Seguimiento DDS',     icon:'dds',        group:'Producción' },
+  activities:   { label:'Actividades',         icon:'clipboard',   group:'Producción' },
+  calendar:     { label:'Calendario',          icon:'calendar',    group:'Producción' },
+  lots:         { label:'Lotes',               icon:'lots',        group:'Producción' },
   quality:      { label:'Liberación de calidad', icon:'quality',  group:'Producción' },
   money:        { label:'Costos y presupuesto', icon:'money',     group:'Comercial' },
   masters:      { label:'Maestros',            icon:'masters',    group:'Sistema' },
   directory:    { label:'Estado de Resultados',icon:'directory',  group:'Directorio' },
+  alerts:       { label:'Alertas',             icon:'bell',       group:'Directorio' },
   // Calidad sub-modules
   'quality-dash':   { label:'Dashboard calidad', icon:'bar-chart', group:'Calidad' },
   'q-injertacion':  { label:'Injertación',       icon:'sprout',    group:'Calidad · Formularios' },
@@ -334,6 +342,6 @@ Object.assign(window, {
   VetLogo, VetLogoFull, Icon,
   ToastProvider, useToast,
   CONTRATOS_ER, calcContrato, aggregateER,
-  LOTES, MATERIALES, CLIENTES_LIST, POSTVENTA, NOTIFS,
+  LOTES, MATERIALES, CLIENTES_LIST, POSTVENTA, NOTIFS, ACTIVITY_TASKS,
   PROFILES, MODULES,
 });

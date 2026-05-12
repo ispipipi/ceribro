@@ -273,12 +273,16 @@ a{ color: inherit; text-decoration: none; }
 .grid-4{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .grid-5{ grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .grid-6{ grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.dashboard-split{ grid-template-columns: 2fr 1fr; }
+.client-split{ grid-template-columns: 320px 1fr; }
+.split-form{ grid-template-columns: 360px 1fr; }
 @media (max-width: 1100px){
   .grid-4, .grid-5, .grid-6{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grid-3{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .dashboard-split, .split-form{ grid-template-columns: 1fr; }
 }
 @media (max-width: 700px){
-  .grid-2, .grid-3, .grid-4, .grid-5, .grid-6{ grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .grid-4, .grid-5, .grid-6, .client-split{ grid-template-columns: 1fr; }
 }
 
 /* ───── Login ───── */
@@ -431,6 +435,7 @@ a{ color: inherit; text-decoration: none; }
 .cal .cell .ev.leaf{ background: #e2eedc; color: var(--vet-leaf-dark); }
 .cal .cell .ev.sun{ background: #fbe9d2; color: var(--vet-sun-deep); }
 .cal .cell .ev.info{ background: var(--info-bg); color: var(--info); }
+.cal .cell .ev.danger{ background: var(--danger-bg); color: var(--danger); }
 
 /* ───── Mobile sidebar ───── */
 .mobile-topbar{ display: none; }

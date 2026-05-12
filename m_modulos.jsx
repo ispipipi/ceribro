@@ -1,5 +1,39 @@
 /* Módulos: Dashboard general, Contratos, Vista por cliente, Postventa, Materiales,
-   Calendario, Lotes, DDS, Liberación de calidad, Costos, Maestros, Campo móvil */
+   Actividades, Calendario, Lotes, Liberación de calidad, Costos, Maestros, Campo móvil */
+
+const ACTIVITY_STORE_KEY = 'ceribro_demo_activities';
+
+function readStoredActivities() {
+  try {
+    return JSON.parse(localStorage.getItem(ACTIVITY_STORE_KEY) || '[]');
+  } catch (err) {
+    return [];
+  }
+}
+
+function allActivities() {
+  return [...ACTIVITY_TASKS, ...readStoredActivities()];
+}
+
+function appendActivity(activity) {
+  const stored = readStoredActivities();
+  localStorage.setItem(ACTIVITY_STORE_KEY, JSON.stringify([activity, ...stored]));
+}
+
+const ENTREGA_CONTRATO = {
+  'C-001':'2026-06-18',
+  'C-002':'2026-06-28',
+  'C-003':'2026-07-08',
+  'C-004':'2026-07-19',
+  'C-005':'2026-08-03',
+  'C-006':'2026-08-16',
+  'C-007':'2026-08-25',
+  'C-008':'2026-09-06',
+  'C-009':'2026-09-18',
+  'C-010':'2026-10-02',
+  'C-011':'2026-10-16',
+  'C-012':'2026-11-03',
+};
 
 // ───────── Dashboard general ─────────
 function ModuleDashboard({ profile }) {
@@ -10,14 +44,18 @@ function ModuleDashboard({ profile }) {
     { label:'Lotes activos', value: LOTES.length, sub: '5 sectores · 4 estados', accent:'olive', icon:'lots' },
     { label:'Postventas abiertas', value: POSTVENTA.filter(p=>p.estado!=='Aprobado').length, sub: 'requieren atención', accent:'earth', icon:'postsale' },
   ];
-  const fasesData = [
-    { fase:'Injertación', plantas: 30000, color:'var(--vet-leaf)' },
-    { fase:'Siembra',     plantas: 76240, color:'var(--vet-olive)' },
-    { fase:'Brotamiento', plantas: 100912, color:'var(--vet-sun)' },
-    { fase:'Clasificación', plantas: 82070, color:'var(--vet-sun-deep)' },
-    { fase:'Despacho',    plantas: 34000, color:'var(--vet-earth)' },
-  ];
-  const total = fasesData.reduce((a,b)=>a+b.plantas, 0);
+  const breederData = Object.values(CONTRATOS_ER.reduce((acc, c) => {
+    const key = c.productor;
+    if (!acc[key]) acc[key] = { breeder:key, plantas:0, contratos:0, variedades:{} };
+    acc[key].plantas += c.plantas;
+    acc[key].contratos += 1;
+    acc[key].variedades[c.variedad] = (acc[key].variedades[c.variedad] || 0) + c.plantas;
+    return acc;
+  }, {})).map(b => ({
+    ...b,
+    topVariedades: Object.entries(b.variedades).sort((a,b) => b[1]-a[1]).slice(0,2),
+  })).sort((a,b) => b.plantas-a.plantas);
+  const totalBreeder = breederData.reduce((a,b)=>a+b.plantas, 0);
 
   return (
     <div>
@@ -44,30 +82,35 @@ function ModuleDashboard({ profile }) {
         ))}
       </div>
 
-      <div className="grid mb-20" style={{gridTemplateColumns:'2fr 1fr'}}>
+      <div className="grid dashboard-split mb-20">
         <div className="card">
           <div className="card-header">
             <div>
-              <h3 className="card-title">Plantas por fase productiva</h3>
-              <p className="card-sub">Distribución actual · {fmtNum(total)} plantas</p>
+              <h3 className="card-title">Distribución de variedades por Breeder</h3>
+              <p className="card-sub">Contratos cerrados · {fmtNum(totalBreeder)} plantas</p>
             </div>
           </div>
           <div className="card-body">
             <div style={{display:'flex', height:32, borderRadius:8, overflow:'hidden', marginBottom:16}}>
-              {fasesData.map((f,i) => (
-                <div key={i} style={{flex: f.plantas, background: f.color}} title={`${f.fase}: ${fmtNum(f.plantas)}`}></div>
+              {breederData.map((b,i) => (
+                <div key={b.breeder} style={{flex: b.plantas, background: ['var(--vet-leaf)','var(--vet-olive)','var(--vet-sun)','var(--vet-earth)','var(--vet-sun-deep)'][i % 5]}} title={`${b.breeder}: ${fmtNum(b.plantas)}`}></div>
               ))}
             </div>
             <div style={{display:'flex', flexDirection:'column', gap:10}}>
-              {fasesData.map((f,i) => (
-                <div key={i} className="row between" style={{padding:'8px 0', borderBottom:i<fasesData.length-1?'1px solid var(--line)':'none'}}>
-                  <div className="row gap-8">
-                    <span style={{width:10, height:10, borderRadius:2, background:f.color}}></span>
-                    <span style={{fontSize:13.5}}>{f.fase}</span>
+              {breederData.map((b,i) => (
+                <div key={b.breeder} className="row between" style={{padding:'8px 0', borderBottom:i<breederData.length-1?'1px solid var(--line)':'none'}}>
+                  <div style={{minWidth:0}}>
+                    <div className="row gap-8">
+                      <span style={{width:10, height:10, borderRadius:2, background:['var(--vet-leaf)','var(--vet-olive)','var(--vet-sun)','var(--vet-earth)','var(--vet-sun-deep)'][i % 5]}}></span>
+                      <span style={{fontSize:13.5, fontWeight:600}}>{b.breeder}</span>
+                    </div>
+                    <div className="text-muted" style={{fontSize:11.5, marginTop:3}}>
+                      {b.topVariedades.map(([v,p]) => `${v} ${fmtPct((p/b.plantas)*100, 0)}`).join(' · ')}
+                    </div>
                   </div>
                   <div className="row gap-12">
-                    <span className="text-muted" style={{fontSize:12.5}}>{fmtPct((f.plantas/total)*100, 1)}</span>
-                    <span style={{fontWeight:600, fontVariantNumeric:'tabular-nums'}}>{fmtNum(f.plantas)}</span>
+                    <span className="text-muted" style={{fontSize:12.5}}>{fmtPct((b.plantas/totalBreeder)*100, 1)}</span>
+                    <span style={{fontWeight:600, fontVariantNumeric:'tabular-nums'}}>{fmtNum(b.plantas)}</span>
                   </div>
                 </div>
               ))}
@@ -153,10 +196,15 @@ function ModuleContratos() {
   const toast = useToast();
   const [tab, setTab] = React.useState('activos');
   const cotizaciones = [
-    { id:'COT-2026-001', cliente:'Agrolatina', variedad:'Sweet Globe', plantas:25000, monto:105000, estado:'Enviada', fecha:'2026-04-22' },
-    { id:'COT-2026-002', cliente:'Don Guillermo', variedad:'Autumn Crisp', plantas:40000, monto:160000, estado:'En revisión', fecha:'2026-04-28' },
-    { id:'COT-2026-003', cliente:'Parvina', variedad:'Itum 16', plantas:15000, monto:61500, estado:'Borrador', fecha:'2026-05-02' },
+    { id:'COT-2026-001', cliente:'Agrolatina', breeder:'IFG', variedad:'Sweet Globe', plantas:25000, monto:105000, estado:'Enviada', fecha:'2026-04-22', entrega:'2026-06-14', archivo:'COT-2026-001.pdf', oc:'OC-AGRO-184.pdf' },
+    { id:'COT-2026-002', cliente:'Don Guillermo', breeder:'Sun World', variedad:'Autumn Crisp', plantas:40000, monto:160000, estado:'En revisión', fecha:'2026-04-28', entrega:'2026-06-21', archivo:'COT-2026-002.pdf', oc:'OC-DG-219.pdf' },
+    { id:'COT-2026-003', cliente:'Parvina', breeder:'Itum', variedad:'Itum 16', plantas:15000, monto:61500, estado:'Borrador', fecha:'2026-05-02', entrega:'2026-07-02', archivo:'COT-2026-003.pdf', oc:'OC-PAR-093.pdf' },
   ];
+  const contratosOrdenados = [...CONTRATOS_ER]
+    .map(c => ({...c, entrega: ENTREGA_CONTRATO[c.id] || c.fecha, archivo:`${c.id}-cotizacion.pdf`, oc:`OC-${c.id}.pdf`}))
+    .sort((a,b) => new Date(a.entrega) - new Date(b.entrega));
+  const cotizacionesOrdenadas = [...cotizaciones].sort((a,b) => new Date(a.entrega) - new Date(b.entrega));
+  const abrirAsociados = (row) => toast.info('Archivos asociados', `${row.archivo} · ${row.oc}`);
   return (
     <div>
       <div className="page-head">
@@ -179,10 +227,10 @@ function ModuleContratos() {
           <div className="table-wrap">
             <table className="tbl">
               <thead><tr>
-                <th>Contrato</th><th>Cliente</th><th>Productor</th><th>Variedad</th><th>Formato</th><th className="num">Plantas</th><th className="num">Monto</th><th>Fecha</th><th></th>
+                <th>Contrato</th><th>Cliente</th><th>Breeder</th><th>Variedad</th><th>Formato</th><th className="num">Plantas</th><th className="num">Monto</th><th>Fecha entrega</th><th></th>
               </tr></thead>
               <tbody>
-                {CONTRATOS_ER.map(c => {
+                {contratosOrdenados.map(c => {
                   const k = calcContrato(c);
                   return (
                     <tr key={c.id}>
@@ -193,8 +241,8 @@ function ModuleContratos() {
                       <td><span className={"chip " + (c.formato==='Bolsa'?'chip-leaf':'chip-sun')}>{c.formato}</span></td>
                       <td className="num">{fmtNum(c.plantas)}</td>
                       <td className="num strong">{fmtCLP(k.ingresos)}</td>
-                      <td className="text-muted">{c.fecha}</td>
-                      <td><button className="btn btn-ghost btn-sm"><Icon name="eye" size={13}/></button></td>
+                      <td className="text-muted">{c.entrega}</td>
+                      <td><button className="btn btn-ghost btn-sm" title="Abrir cotización y orden de compra" onClick={() => abrirAsociados(c)}>→</button></td>
                     </tr>
                   );
                 })}
@@ -207,18 +255,19 @@ function ModuleContratos() {
         <div className="card">
           <div className="table-wrap">
             <table className="tbl">
-              <thead><tr><th>Cotización</th><th>Cliente</th><th>Variedad</th><th className="num">Plantas</th><th className="num">Monto</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+              <thead><tr><th>Cotización</th><th>Cliente</th><th>Breeder</th><th>Variedad</th><th className="num">Plantas</th><th className="num">Monto</th><th>Estado</th><th>Fecha entrega</th><th></th></tr></thead>
               <tbody>
-                {cotizaciones.map(c => (
+                {cotizacionesOrdenadas.map(c => (
                   <tr key={c.id}>
                     <td className="strong">{c.id}</td>
                     <td>{c.cliente}</td>
+                    <td>{c.breeder}</td>
                     <td>{c.variedad}</td>
                     <td className="num">{fmtNum(c.plantas)}</td>
                     <td className="num">{fmtCLP(c.monto)}</td>
                     <td><span className={"chip " + (c.estado==='Enviada'?'chip-info':c.estado==='En revisión'?'chip-warn':'chip-leaf')}>{c.estado}</span></td>
-                    <td className="text-muted">{c.fecha}</td>
-                    <td><button className="btn btn-ghost btn-sm"><Icon name="edit" size={13}/></button></td>
+                    <td className="text-muted">{c.entrega}</td>
+                    <td><button className="btn btn-ghost btn-sm" title="Abrir cotización y orden de compra" onClick={() => abrirAsociados(c)}>→</button></td>
                   </tr>
                 ))}
               </tbody>
@@ -239,10 +288,17 @@ function ModuleContratos() {
 
 // ───────── Vista por cliente ─────────
 function ModuleClientes() {
+  const toast = useToast();
   const [sel, setSel] = React.useState(CLIENTES_LIST[0].nombre);
   const cliente = CLIENTES_LIST.find(c => c.nombre === sel);
   const contratos = CONTRATOS_ER.filter(c => c.cliente === sel);
   const ag = aggregateER(contratos);
+  const deuda = Math.round(ag.ingresos * 0.32);
+  const verDeuda = (e) => {
+    e.preventDefault();
+    toast.info('Condiciones de pago', `${cliente.nombre}: facturas pendientes y vencimientos disponibles en demo.`);
+  };
+  const descargarTrazabilidad = () => toast.success('Reporte generado', `Trazabilidad completa de ${cliente.nombre} lista para descarga`);
   return (
     <div>
       <div className="page-head">
@@ -251,7 +307,7 @@ function ModuleClientes() {
           <p className="page-sub">Información consolidada de cada cliente · {CLIENTES_LIST.length} clientes</p>
         </div>
       </div>
-      <div className="grid" style={{gridTemplateColumns:'320px 1fr', gap:16}}>
+      <div className="grid client-split" style={{gap:16}}>
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">Clientes</h3>
@@ -281,6 +337,7 @@ function ModuleClientes() {
                   <p className="text-muted" style={{margin:'4px 0 0', fontSize:13.5}}>{cliente.region}</p>
                 </div>
                 <div className="row gap-8">
+                  <button className="btn btn-secondary btn-sm" onClick={descargarTrazabilidad}><Icon name="download" size={13}/> Trazabilidad</button>
                   <button className="btn btn-secondary btn-sm"><Icon name="edit" size={13}/> Editar</button>
                 </div>
               </div>
@@ -303,8 +360,8 @@ function ModuleClientes() {
               <div className="kpi-value" style={{fontSize:24}}>{fmtCLP(ag.ingresos)}</div>
             </div>
             <div className="kpi"><div className="kpi-accent olive"></div>
-              <div className="kpi-label">Margen</div>
-              <div className="kpi-value" style={{fontSize:24, color:'var(--vet-leaf-dark)'}}>{fmtCLP(ag.resultado)}</div>
+              <div className="kpi-label">Deuda</div>
+              <a href={"#pagos-" + cliente.nombre.replace(/\s+/g,'-').toLowerCase()} onClick={verDeuda} className="kpi-value" style={{fontSize:24, color:'var(--vet-leaf-dark)', textDecoration:'underline', display:'inline-block'}}>{fmtCLP(deuda)}</a>
             </div>
           </div>
 
@@ -317,11 +374,11 @@ function ModuleClientes() {
                 <div className="empty"><div className="empty-icon"><Icon name="contracts" size={20}/></div><div className="empty-title">Sin contratos para este cliente</div></div>
               ) : (
                 <table className="tbl">
-                  <thead><tr><th>Contrato</th><th>Variedad</th><th>Formato</th><th className="num">Plantas</th><th className="num">Ingresos</th><th>Fecha</th></tr></thead>
+                  <thead><tr><th>Contrato</th><th>Variedad</th><th>Formato</th><th className="num">Plantas</th><th className="num">Ingresos</th><th>Fecha contrato</th><th>Fecha de entrega</th></tr></thead>
                   <tbody>
                     {contratos.map(c => {
                       const k = calcContrato(c);
-                      return (<tr key={c.id}><td className="strong">{c.id}</td><td>{c.variedad}</td><td><span className={"chip " + (c.formato==='Bolsa'?'chip-leaf':'chip-sun')}>{c.formato}</span></td><td className="num">{fmtNum(c.plantas)}</td><td className="num">{fmtCLP(k.ingresos)}</td><td className="text-muted">{c.fecha}</td></tr>);
+                      return (<tr key={c.id}><td className="strong">{c.id}</td><td>{c.variedad}</td><td><span className={"chip " + (c.formato==='Bolsa'?'chip-leaf':'chip-sun')}>{c.formato}</span></td><td className="num">{fmtNum(c.plantas)}</td><td className="num">{fmtCLP(k.ingresos)}</td><td className="text-muted">{c.fecha}</td><td className="text-muted">{ENTREGA_CONTRATO[c.id] || c.fecha}</td></tr>);
                     })}
                   </tbody>
                 </table>
@@ -337,6 +394,9 @@ function ModuleClientes() {
 // ───────── Postventa ─────────
 function ModulePostventa() {
   const toast = useToast();
+  const totalRecalce = POSTVENTA.reduce((a,b)=>a+b.plantas,0);
+  const aprobadoRecalce = POSTVENTA.filter(p=>p.estado==='Aprobado').reduce((a,b)=>a+b.plantas,0);
+  const porcentajeRecalce = totalRecalce ? (aprobadoRecalce / totalRecalce) * 100 : 0;
   return (
     <div>
       <div className="page-head">
@@ -349,14 +409,14 @@ function ModulePostventa() {
       <div className="grid grid-4 mb-20">
         <div className="kpi"><div className="kpi-accent"></div><div className="kpi-label">Casos abiertos</div><div className="kpi-value">{POSTVENTA.filter(p=>p.estado!=='Aprobado').length}</div></div>
         <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Plantas en recalce</div><div className="kpi-value">{fmtNum(POSTVENTA.reduce((a,b)=>a+b.plantas,0))}</div></div>
-        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Aprobados (mes)</div><div className="kpi-value">{POSTVENTA.filter(p=>p.estado==='Aprobado').length}</div></div>
-        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">SLA promedio</div><div className="kpi-value">3.4 d</div></div>
+        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Aprobados (Año)</div><div className="kpi-value">{POSTVENTA.filter(p=>p.estado==='Aprobado').length}</div></div>
+        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Porcentaje de Recalce</div><div className="kpi-value">{fmtPct(porcentajeRecalce, 1)}</div></div>
       </div>
       <div className="card">
         <div className="card-header"><h3 className="card-title">Casos de postventa</h3></div>
         <div className="table-wrap">
           <table className="tbl">
-            <thead><tr><th>ID</th><th>Cliente</th><th>Lote</th><th>Motivo</th><th className="num">Plantas</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+            <thead><tr><th>ID</th><th>Cliente</th><th>Lote</th><th>Motivo</th><th className="num">Plantas</th><th>Estado</th><th>Fecha</th><th>Fecha despacho recalce</th><th></th></tr></thead>
             <tbody>
               {POSTVENTA.map(p => (
                 <tr key={p.id}>
@@ -367,6 +427,7 @@ function ModulePostventa() {
                   <td className="num">{fmtNum(p.plantas)}</td>
                   <td><span className={"chip " + (p.estado==='Aprobado'?'chip-success':p.estado==='En revisión'?'chip-warn':'chip-info')}>{p.estado}</span></td>
                   <td className="text-muted">{p.fecha}</td>
+                  <td className="text-muted">{p.estado==='Aprobado' ? (p.despacho || 'Por programar') : '—'}</td>
                   <td><button className="btn btn-ghost btn-sm"><Icon name="eye" size={13}/></button></td>
                 </tr>
               ))}
@@ -380,6 +441,11 @@ function ModulePostventa() {
 
 // ───────── Materiales ─────────
 function ModuleMateriales() {
+  const activityRows = allActivities().filter(a => a.material);
+  const usoAnunciado = activityRows.reduce((a,b)=>a + (Number(b.cantidad) || 0), 0);
+  const descuentos = activityRows.filter(a => a.impacto === 'descuento_bodega').length;
+  const stockOuts = activityRows.filter(a => a.impacto === 'stock_out').length;
+  const alarmas = activityRows.filter(a => a.alarma).length;
   return (
     <div>
       <div className="page-head">
@@ -393,10 +459,30 @@ function ModuleMateriales() {
         </div>
       </div>
       <div className="grid grid-4 mb-20">
-        <div className="kpi"><div className="kpi-accent"></div><div className="kpi-label">SKUs activos</div><div className="kpi-value">{MATERIALES.length}</div></div>
-        <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Bajo mínimo</div><div className="kpi-value" style={{color:'var(--warn)'}}>{MATERIALES.filter(m=>m.stock<m.minimo).length}</div></div>
-        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Categorías</div><div className="kpi-value">{[...new Set(MATERIALES.map(m=>m.categoria))].length}</div></div>
-        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Reposiciones (mes)</div><div className="kpi-value">14</div></div>
+        <div className="kpi"><div className="kpi-accent"></div><div className="kpi-label">Utilización anunciada</div><div className="kpi-value">{fmtNum(usoAnunciado)}</div><div className="kpi-foot">Desde actividades</div></div>
+        <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Descuentos bodega</div><div className="kpi-value">{descuentos}</div><div className="kpi-foot">Programados</div></div>
+        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Alertas stock-out</div><div className="kpi-value" style={{color:stockOuts?'var(--danger)':'inherit'}}>{stockOuts}</div><div className="kpi-foot">Por actividad</div></div>
+        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Alarmas generales</div><div className="kpi-value">{alarmas}</div><div className="kpi-foot">Materiales vinculados</div></div>
+      </div>
+      <div className="card mb-20">
+        <div className="card-header"><div><h3 className="card-title">Actividades vinculadas a materiales</h3><p className="card-sub">Alimentan utilización anunciada, descuentos de bodega y alertas.</p></div></div>
+        <div className="table-wrap">
+          <table className="tbl">
+            <thead><tr><th>Fecha</th><th>Actividad</th><th>Material</th><th className="num">Cantidad</th><th>Impacto</th><th>Alarma</th></tr></thead>
+            <tbody>
+              {activityRows.map(a => (
+                <tr key={a.id}>
+                  <td className="text-muted">{a.fecha}</td>
+                  <td className="strong">{a.actividad}</td>
+                  <td>{a.material}</td>
+                  <td className="num">{fmtNum(Number(a.cantidad) || 0)} <span className="text-muted">{a.unidad}</span></td>
+                  <td><span className={"chip " + (a.impacto==='stock_out'?'chip-danger':a.impacto==='descuento_bodega'?'chip-warn':'chip-info')}>{a.impacto.replace(/_/g,' ')}</span></td>
+                  <td className="text-muted">{a.alarma}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <div className="card">
         <div className="card-header"><h3 className="card-title">Inventario</h3></div>
@@ -436,6 +522,90 @@ function ModuleMateriales() {
   );
 }
 
+// ───────── Actividades ─────────
+function ModuleActividades() {
+  const toast = useToast();
+  const [items, setItems] = React.useState(allActivities());
+  const [form, setForm] = React.useState({
+    fecha:'2026-05-18',
+    tipo:'Uso material',
+    actividad:'',
+    responsable:'',
+    lote:'L-2025-001',
+    material:'Cinta de injerto biodegradable',
+    cantidad:0,
+    unidad:'un',
+    impacto:'utilizacion_anunciada',
+    alarma:'',
+  });
+  const registrar = () => {
+    const nuevo = {
+      ...form,
+      id:'ACT-' + String(Date.now()).slice(-5),
+      cantidad:Number(form.cantidad) || 0,
+      estado:'Planificada',
+    };
+    appendActivity(nuevo);
+    const next = [nuevo, ...items];
+    setItems(next);
+    setForm({...form, actividad:'', responsable:'', cantidad:0, alarma:''});
+    toast.success('Actividad registrada', 'También aparecerá en Calendario y Materiales.');
+  };
+  return (
+    <div>
+      <div className="page-head">
+        <div>
+          <h1 className="page-title">Actividades</h1>
+          <p className="page-sub">Registro de tareas, calendario y consumo anunciado de materiales.</p>
+        </div>
+      </div>
+      <div className="grid split-form mb-20">
+        <div className="card">
+          <div className="card-header"><h3 className="card-title">Nueva actividad</h3></div>
+          <div className="card-body" style={{display:'flex', flexDirection:'column', gap:12}}>
+            <div className="field"><label className="label">Fecha</label><input className="input" type="date" value={form.fecha} onChange={e=>setForm({...form, fecha:e.target.value})}/></div>
+            <div className="field"><label className="label">Tipo</label><select className="select" value={form.tipo} onChange={e=>setForm({...form, tipo:e.target.value})}><option>Uso material</option><option>Recepción</option><option>Control</option><option>Tarea general</option></select></div>
+            <div className="field"><label className="label">Actividad</label><input className="input" value={form.actividad} onChange={e=>setForm({...form, actividad:e.target.value})} placeholder="Ej. Injertación lote AIB"/></div>
+            <div className="field"><label className="label">Responsable</label><input className="input" value={form.responsable} onChange={e=>setForm({...form, responsable:e.target.value})} placeholder="Área o persona"/></div>
+            <div className="field"><label className="label">Lote / referencia</label><input className="input" value={form.lote} onChange={e=>setForm({...form, lote:e.target.value})}/></div>
+            <div className="grid grid-2 gap-12">
+              <div className="field"><label className="label">Material</label><input className="input" value={form.material} onChange={e=>setForm({...form, material:e.target.value})}/></div>
+              <div className="field"><label className="label">Cantidad</label><input className="input" type="number" value={form.cantidad} onChange={e=>setForm({...form, cantidad:e.target.value})}/></div>
+            </div>
+            <div className="grid grid-2 gap-12">
+              <div className="field"><label className="label">Unidad</label><input className="input" value={form.unidad} onChange={e=>setForm({...form, unidad:e.target.value})}/></div>
+              <div className="field"><label className="label">Impacto</label><select className="select" value={form.impacto} onChange={e=>setForm({...form, impacto:e.target.value})}><option value="utilizacion_anunciada">utilizacion_anunciada</option><option value="descuento_bodega">descuento_bodega</option><option value="stock_out">stock_out</option><option value="alarma_general">alarma_general</option></select></div>
+            </div>
+            <div className="field"><label className="label">Alarma</label><textarea className="textarea" value={form.alarma} onChange={e=>setForm({...form, alarma:e.target.value})} placeholder="Riesgo, aviso o condición operacional"/></div>
+            <button className="btn btn-primary btn-lg" onClick={registrar} disabled={!form.actividad.trim()}><Icon name="plus" size={16}/> Registrar actividad</button>
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Tareas y actividades</h3><p className="card-sub">Se reflejan en Calendario y Análisis de materiales.</p></div></div>
+          <div className="table-wrap">
+            <table className="tbl">
+              <thead><tr><th>Fecha</th><th>Tipo</th><th>Actividad</th><th>Responsable</th><th>Material</th><th className="num">Cantidad</th><th>Estado</th></tr></thead>
+              <tbody>
+                {items.map(a => (
+                  <tr key={a.id}>
+                    <td className="text-muted">{a.fecha}</td>
+                    <td><span className="chip">{a.tipo}</span></td>
+                    <td className="strong">{a.actividad}</td>
+                    <td>{a.responsable}</td>
+                    <td>{a.material}</td>
+                    <td className="num">{fmtNum(Number(a.cantidad) || 0)} <span className="text-muted">{a.unidad}</span></td>
+                    <td><span className="chip chip-info">{a.estado}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ───────── Calendario ─────────
 function ModuleCalendario() {
   const events = {
@@ -449,6 +619,13 @@ function ModuleCalendario() {
     22:[{t:'Injert. Florida B.', c:'leaf'}],
     27:[{t:'Cosecha barbadas', c:'leaf'}],
   };
+  const activityEvents = allActivities().reduce((acc, a) => {
+    const day = Number((a.fecha || '').slice(-2));
+    if (!day) return acc;
+    if (!acc[day]) acc[day] = [];
+    acc[day].push({t:a.actividad, c:a.impacto==='stock_out'?'danger':a.tipo==='Control'?'info':'leaf'});
+    return acc;
+  }, {});
   const days = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
   const cells = [];
   // Mayo 2026 starts on Friday (offset 4)
@@ -459,14 +636,14 @@ function ModuleCalendario() {
     <div>
       <div className="page-head">
         <div>
-          <h1 className="page-title">Calendario de injertación</h1>
-          <p className="page-sub">Mayo 2026 · planificación productiva y comercial</p>
+          <h1 className="page-title">Calendario</h1>
+          <p className="page-sub">Mayo 2026 · planificación productiva, comercial y actividades registradas</p>
         </div>
         <div className="actions">
           <button className="btn btn-secondary btn-sm"><Icon name="chevron-left" size={13}/></button>
           <span style={{fontWeight:600, padding:'0 8px'}}>Mayo 2026</span>
           <button className="btn btn-secondary btn-sm"><Icon name="chevron-right" size={13}/></button>
-          <button className="btn btn-primary"><Icon name="plus" size={14}/> Evento</button>
+          <button className="btn btn-primary"><Icon name="plus" size={14}/> Actividad</button>
         </div>
       </div>
       <div className="card">
@@ -478,7 +655,7 @@ function ModuleCalendario() {
             {cells.map((c,i) => (
               <div key={i} className={"cell " + (c.muted?'muted':'')}>
                 <div className="d">{c.d}</div>
-                {!c.muted && events[c.d] && events[c.d].map((e,j) => (
+                {!c.muted && [...(events[c.d] || []), ...(activityEvents[c.d] || [])].map((e,j) => (
                   <div key={j} className={"ev " + e.c}>{e.t}</div>
                 ))}
               </div>
@@ -499,7 +676,7 @@ function ModuleLotes() {
     <div>
       <div className="page-head">
         <div>
-          <h1 className="page-title">Lotes de injerto</h1>
+          <h1 className="page-title">Lotes</h1>
           <p className="page-sub">{LOTES.length} lotes activos · {fmtNum(LOTES.reduce((a,b)=>a+b.plantas,0))} plantas</p>
         </div>
         <button className="btn btn-primary"><Icon name="plus" size={14}/> Nuevo lote</button>
@@ -538,50 +715,18 @@ function ModuleLotes() {
   );
 }
 
-// ───────── DDS ─────────
-function ModuleDDS() {
-  return (
-    <div>
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Seguimiento DDS</h1>
-          <p className="page-sub">Días desde siembra · evolución por lote</p>
-        </div>
-      </div>
-      <div className="card">
-        <div className="card-header"><h3 className="card-title">Lotes ordenados por DDS</h3></div>
-        <div className="card-body">
-          <div style={{display:'flex', flexDirection:'column', gap:14}}>
-            {[...LOTES].sort((a,b)=>b.dds-a.dds).map(l => (
-              <div key={l.id} className="row between" style={{padding:'10px 0', borderBottom:'1px solid var(--line)'}}>
-                <div style={{minWidth:200}}>
-                  <div style={{fontWeight:600, fontSize:13.5}}>{l.id} · {l.variedad}</div>
-                  <div className="text-muted" style={{fontSize:12, marginTop:2}}>{l.cliente} · {l.ubicacion}</div>
-                </div>
-                <div style={{flex:1, padding:'0 20px'}}>
-                  <div className="row between mb-8" style={{fontSize:11.5, color:'var(--muted)'}}>
-                    <span>{l.estado}</span><span>{l.dds} / 120 días</span>
-                  </div>
-                  <div className="bar-track" style={{height:8}}>
-                    <div className="bar-fill" style={{width: (l.dds/120*100)+'%', background: l.dds<30?'var(--vet-leaf)':l.dds<70?'var(--vet-sun)':'var(--vet-earth)'}}></div>
-                  </div>
-                </div>
-                <div className="text-right" style={{minWidth:80}}>
-                  <div style={{fontFamily:'var(--font-display)', fontSize:22, fontWeight:500}}>{l.dds}</div>
-                  <div className="text-muted" style={{fontSize:11}}>días</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ───────── Liberación de calidad ─────────
 function ModuleLiberacion() {
   const toast = useToast();
+  const [orden, setOrden] = React.useState('LB-001');
+  const [params, setParams] = React.useState([
+    'Calibre y uniformidad según contrato',
+    'Ausencia de plagas visibles',
+    'Raíz activa y sin daño mecánico',
+    'Etiquetado y trazabilidad completa',
+  ]);
+  const [observaciones, setObservaciones] = React.useState('');
+  const [noConformidades, setNoConformidades] = React.useState('');
   const items = [
     { id:'LB-001', lote:'L-2025-003', tipo:'Liberación final', resp:'C. Ruiz', estado:'Pendiente', fecha:'2026-05-04' },
     { id:'LB-002', lote:'L-2025-004', tipo:'Inspección parcial', resp:'P. Vera', estado:'Aprobado', fecha:'2026-05-03' },
@@ -594,6 +739,31 @@ function ModuleLiberacion() {
         <div>
           <h1 className="page-title">Liberación de calidad</h1>
           <p className="page-sub">Visado y aprobación de lotes para despacho</p>
+        </div>
+      </div>
+      <div className="card mb-20">
+        <div className="card-header"><div><h3 className="card-title">Checklist bajo demanda</h3><p className="card-sub">Parámetros editables por solicitud u orden de cliente.</p></div></div>
+        <div className="card-body" style={{display:'flex', flexDirection:'column', gap:14}}>
+          <div className="grid grid-2 gap-12">
+            <div className="field"><label className="label">Solicitud / orden</label><select className="select" value={orden} onChange={e=>setOrden(e.target.value)}>{items.map(i => <option key={i.id} value={i.id}>{i.id} · {i.lote}</option>)}</select></div>
+            <div className="field"><label className="label">Nuevo criterio</label><div className="row gap-8"><input id="new-quality-param" className="input" placeholder="Criterio requerido por cliente"/><button className="btn btn-secondary" onClick={() => { const el = document.getElementById('new-quality-param'); if (el.value.trim()) { setParams([...params, el.value.trim()]); el.value=''; } }}><Icon name="plus" size={14}/></button></div></div>
+          </div>
+          <div className="grid grid-2 gap-12">
+            {params.map((p,i) => (
+              <label key={i} style={{display:'flex', alignItems:'center', gap:10, padding:12, border:'1px solid var(--line)', borderRadius:8, background:'#fff'}}>
+                <input type="checkbox" style={{width:18, height:18, accentColor:'var(--vet-leaf)'}}/>
+                <input className="input" value={p} onChange={e => setParams(params.map((x,idx)=>idx===i?e.target.value:x))}/>
+              </label>
+            ))}
+          </div>
+          <div className="grid grid-2 gap-12">
+            <div className="field"><label className="label">Observaciones de auditoría</label><textarea className="textarea" value={observaciones} onChange={e=>setObservaciones(e.target.value)} placeholder="Observaciones del inspector"/></div>
+            <div className="field"><label className="label">No conformances</label><textarea className="textarea" value={noConformidades} onChange={e=>setNoConformidades(e.target.value)} placeholder="No conformidades detectadas"/></div>
+          </div>
+          <div className="row between wrap gap-8">
+            <span className="text-muted" style={{fontSize:12.5}}>Registro auditable: criterios, observaciones y no conformidades quedan asociados a {orden}.</span>
+            <button className="btn btn-primary" onClick={() => toast.success('Checklist generado', `${orden} con ${params.length} criterios editables`)}><Icon name="clipboard" size={14}/> Generar checklist</button>
+          </div>
         </div>
       </div>
       <div className="card">
@@ -626,6 +796,37 @@ function ModuleLiberacion() {
 // ───────── Costos / Maestros ─────────
 function ModuleCostos() {
   const ag = aggregateER(CONTRATOS_ER);
+  const areaRows = [
+    { area:'Sombreadero', presupuesto:82000000, real:76800000 },
+    { area:'Parrones', presupuesto:64500000, real:67200000 },
+    { area:'Riego', presupuesto:28800000, real:30400000 },
+    { area:'Injertación', presupuesto:112000000, real:104600000 },
+  ];
+  const categoryRows = [
+    { categoria:'Insumos', presupuesto:ag.insumos * 1.08, real:ag.insumos },
+    { categoria:'Mano de Obra', presupuesto:ag.mano * 1.12, real:ag.mano },
+    { categoria:'Costos indirectos', presupuesto:ag.indirectos * 0.98, real:ag.indirectos },
+    { categoria:'Otros por definir', presupuesto:18000000, real:16400000 },
+  ];
+  const totalPresupuesto = categoryRows.reduce((a,b)=>a+b.presupuesto,0);
+  const totalReal = categoryRows.reduce((a,b)=>a+b.real,0);
+  const renderComparisonRows = rows => rows.map(r => {
+    const delta = r.presupuesto - r.real;
+    const pct = r.presupuesto ? (r.real / r.presupuesto) * 100 : 0;
+    return (
+      <tr key={r.area || r.categoria}>
+        <td className="strong">{r.area || r.categoria}</td>
+        <td className="num">{fmtCLP(r.presupuesto)}</td>
+        <td className="num">{fmtCLP(r.real)}</td>
+        <td className="num" style={{color:delta>=0?'var(--success)':'var(--danger)'}}>{fmtCLP(Math.abs(delta))} {delta>=0?'favor':'sobre'}</td>
+        <td>
+          <div className="bar-track" style={{width:120, height:6}}>
+            <div className="bar-fill" style={{width:Math.min(pct,120)+'%', background:pct>100?'var(--danger)':pct>95?'var(--vet-sun)':'var(--vet-leaf)'}}></div>
+          </div>
+        </td>
+      </tr>
+    );
+  });
   return (
     <div>
       <div className="page-head"><div><h1 className="page-title">Costos y presupuesto</h1><p className="page-sub">Ejecución vs presupuesto · período actual</p></div></div>
@@ -634,9 +835,16 @@ function ModuleCostos() {
         <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Mano de obra</div><div className="kpi-value">{fmtCLP(ag.mano)}</div><div className="kpi-foot">88% del presupuesto</div></div>
         <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Indirectos</div><div className="kpi-value">{fmtCLP(ag.indirectos)}</div><div className="kpi-foot">102% del presupuesto</div></div>
       </div>
-      <div className="card"><div className="card-body">
-        <div className="empty"><div className="empty-icon"><Icon name="bar-chart" size={22}/></div><div className="empty-title">Detalle por categoría</div><div className="empty-msg">El detalle ejecutivo de costos se conectará al backend contable. Por ahora la vista directiva consolida los totales en Estado de Resultados.</div></div>
-      </div></div>
+      <div className="grid grid-2 mb-20">
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Budget vs Actual por área</h3><p className="card-sub">Sombreadero, Parrones, Riego e Injertación.</p></div></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Área</th><th className="num">Budget</th><th className="num">Actual</th><th className="num">Diferencia</th><th>Ejecución</th></tr></thead><tbody>{renderComparisonRows(areaRows)}</tbody></table></div>
+        </div>
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Budget vs Actual por categoría</h3><p className="card-sub">Insumos, Mano de Obra y otras categorías.</p></div></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Categoría</th><th className="num">Budget</th><th className="num">Actual</th><th className="num">Diferencia</th><th>Ejecución</th></tr></thead><tbody>{renderComparisonRows(categoryRows)}<tr><td className="strong">Total</td><td className="num strong">{fmtCLP(totalPresupuesto)}</td><td className="num strong">{fmtCLP(totalReal)}</td><td className="num strong">{fmtCLP(Math.abs(totalPresupuesto-totalReal))}</td><td></td></tr></tbody></table></div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -651,6 +859,53 @@ function ModuleMaestros() {
       <div className="card"><div className="card-body">
         <div className="empty"><div className="empty-icon"><Icon name="masters" size={22}/></div><div className="empty-title">Catálogo de {t}</div><div className="empty-msg">El módulo de maestros permitirá administrar {t.toLowerCase()} del sistema. Conexión a backend pendiente.</div><button className="btn btn-secondary btn-sm"><Icon name="plus" size={13}/> Agregar {t.slice(0,-1).toLowerCase()}</button></div>
       </div></div>
+    </div>
+  );
+}
+
+// ───────── Alertas ─────────
+function ModuleAlertas() {
+  const materialAlerts = allActivities().filter(a => a.alarma);
+  const postventaAlerts = POSTVENTA.filter(p => p.estado !== 'Aprobado');
+  return (
+    <div>
+      <div className="page-head">
+        <div>
+          <h1 className="page-title">Alertas</h1>
+          <p className="page-sub">Vista de lectura para Directorio · alertas operacionales y comerciales.</p>
+        </div>
+      </div>
+      <div className="grid grid-3 mb-20">
+        <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Notificaciones activas</div><div className="kpi-value">{NOTIFS.length}</div></div>
+        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Alarmas materiales</div><div className="kpi-value">{materialAlerts.length}</div></div>
+        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Postventa pendiente</div><div className="kpi-value">{postventaAlerts.length}</div></div>
+      </div>
+      <div className="grid grid-2">
+        <div className="card">
+          <div className="card-header"><h3 className="card-title">Alertas generales</h3></div>
+          <div style={{display:'flex', flexDirection:'column'}}>
+            {NOTIFS.map((n,i) => (
+              <div key={i} style={{padding:'14px 20px', borderBottom:i<NOTIFS.length-1?'1px solid var(--line)':'none', display:'flex', gap:12}}>
+                <div style={{width:34, height:34, borderRadius:8, background:n.tipo==='warn'?'var(--warn-bg)':n.tipo==='success'?'var(--success-bg)':'var(--info-bg)', display:'grid', placeItems:'center'}}><Icon name={n.icon} size={16}/></div>
+                <div><div style={{fontSize:13.5, fontWeight:600}}>{n.titulo}</div><div className="text-muted" style={{fontSize:12}}>{n.tiempo}</div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-header"><h3 className="card-title">Alarmas de actividades</h3></div>
+          <div className="table-wrap">
+            <table className="tbl">
+              <thead><tr><th>Fecha</th><th>Actividad</th><th>Impacto</th><th>Alarma</th></tr></thead>
+              <tbody>
+                {materialAlerts.map(a => (
+                  <tr key={a.id}><td className="text-muted">{a.fecha}</td><td className="strong">{a.actividad}</td><td><span className={"chip " + (a.impacto==='stock_out'?'chip-danger':'chip-warn')}>{a.impacto.replace(/_/g,' ')}</span></td><td className="text-muted">{a.alarma}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -824,7 +1079,8 @@ function CampoMovil() {
 
 Object.assign(window, {
   ModuleDashboard, ModuleContratos, ModuleClientes, ModulePostventa,
-  ModuleMateriales, ModuleCalendario, ModuleLotes, ModuleDDS,
+  ModuleMateriales, ModuleActividades, ModuleCalendario, ModuleLotes,
   ModuleLiberacion, ModuleCostos, ModuleMaestros, CampoMovil,
+  ModuleAlertas,
   FilterChip,
 });
