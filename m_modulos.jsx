@@ -20,6 +20,12 @@ function appendActivity(activity) {
   localStorage.setItem(ACTIVITY_STORE_KEY, JSON.stringify([activity, ...stored]));
 }
 
+function addDaysISO(date, days) {
+  const d = new Date(date + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0,10);
+}
+
 const ENTREGA_CONTRATO = {
   'C-001':'2026-06-18',
   'C-002':'2026-06-28',
@@ -34,6 +40,76 @@ const ENTREGA_CONTRATO = {
   'C-011':'2026-10-16',
   'C-012':'2026-11-03',
 };
+
+const PROCESO_PATRONES = [
+  { calibre:'6-8 mm', variedad:'Freedom', procedencia:'Parrón Norte', procesado:18500, pendiente:4200 },
+  { calibre:'8-10 mm', variedad:'Salt Creek', procedencia:'Sombreadero A', procesado:26400, pendiente:3100 },
+  { calibre:'10-12 mm', variedad:'1103 Paulsen', procedencia:'Campo Sur', procesado:14200, pendiente:1800 },
+  { calibre:'12+ mm', variedad:'Harmony', procedencia:'Proveedor externo', procesado:6200, pendiente:900 },
+];
+
+const PROCESO_YEMAS = [
+  { calibre:'6-8 mm', variedad:'Sweet Globe', procesado:12800, pendiente:2300 },
+  { calibre:'8-10 mm', variedad:'Autumn Crisp', procesado:21400, pendiente:3500 },
+  { calibre:'10-12 mm', variedad:'Itum 16', procesado:8600, pendiente:1200 },
+  { calibre:'12+ mm', variedad:'Ruby Rush', procesado:5100, pendiente:700 },
+];
+
+const VID_STOCK = [
+  { campana:'2024', variedad:'Cabernet Sauvignon', estado:'Aptas para venta', plantas:9200, ubicacion:'Vid · Sector V1' },
+  { campana:'2024', variedad:'Carménère', estado:'En recuperación', plantas:1450, ubicacion:'Vid · Recuperación' },
+  { campana:'2025', variedad:'Sauvignon Blanc', estado:'Aptas para venta', plantas:14800, ubicacion:'Vid · Sector V2' },
+  { campana:'2025', variedad:'Chardonnay', estado:'En recuperación', plantas:2100, ubicacion:'Vid · Sector V3' },
+  { campana:'2026', variedad:'Pinot Noir', estado:'Aptas para venta', plantas:7600, ubicacion:'Vid · Sector V4' },
+  { campana:'2026', variedad:'Merlot', estado:'En recuperación', plantas:980, ubicacion:'Vid · Recuperación' },
+];
+
+const PARRONES_ESTIMACION = [
+  { patron:'Freedom', sector:'Parrón 1', estimado:28000, poda:'2026-06-03', responsable:'Equipo Parrones' },
+  { patron:'Salt Creek', sector:'Parrón 2', estimado:34000, poda:'2026-06-11', responsable:'Equipo Parrones' },
+  { patron:'Harmony', sector:'Parrón 4', estimado:16500, poda:'2026-06-18', responsable:'Supervisor Campo' },
+];
+
+const PARRONES_BARBADAS = [
+  { variedad:'Sweet Globe', sector:'Campo B1', estimado:22000, cosechado:15400 },
+  { variedad:'Autumn Crisp', sector:'Campo B2', estimado:18000, cosechado:8100 },
+  { variedad:'Itum 16', sector:'Campo B3', estimado:9500, cosechado:5700 },
+];
+
+const PARRONES_INJERTOS = [
+  { id:'PB-001', ubicacion:'Campo barbadas', patron:'Freedom', variedad:'Sweet Globe', injertacion:'2026-05-02' },
+  { id:'PB-002', ubicacion:'Sombreadero 3', patron:'Salt Creek', variedad:'Autumn Crisp', injertacion:'2026-05-08' },
+  { id:'PB-003', ubicacion:'Campo barbadas', patron:'1103 Paulsen', variedad:'Itum 16', injertacion:'2026-05-15' },
+];
+
+const MATERIAL_VENCIMIENTOS = [
+  { sku:'AG-021', producto:'Fungicida preventivo A', lote:'L-88', vence:'2026-07-20', stock:42, unidad:'lt', uso:'Aplicaciones programadas' },
+  { sku:'NU-014', producto:'Bioestimulante radicular', lote:'B-103', vence:'2026-09-12', stock:65, unidad:'lt', uso:'Prebrotamiento' },
+  { sku:'AD-007', producto:'Adherente agrícola', lote:'AD-56', vence:'2026-11-08', stock:28, unidad:'lt', uso:'Mezclas foliares' },
+];
+
+const ENVASES_STOCK = [
+  { item:'Jabas plásticas', disponible:820, retorno:145, devolver:60 },
+  { item:'Bins cosecha', disponible:96, retorno:24, devolver:11 },
+  { item:'Bandejas vivero', disponible:1320, retorno:210, devolver:84 },
+];
+
+const ORDENES_COMPRA = [
+  { oc:'OC-2026-118', proveedor:'Agroinsumos Central', material:'Sustrato turba premium', solicitado:1200, recibido:800, pendiente:400, llegada:'2026-06-02', estado:'Parcial' },
+  { oc:'OC-2026-127', proveedor:'Envases Pacífico', material:'Jabas plásticas', solicitado:500, recibido:0, pendiente:500, llegada:'2026-06-09', estado:'Pendiente' },
+  { oc:'OC-2026-131', proveedor:'Fertilizantes Norte', material:'Fertilizante NPK', solicitado:320, recibido:320, pendiente:0, llegada:'2026-05-22', estado:'Recibida' },
+];
+
+const COMPRAS_ARCHIVADAS = [
+  { oc:'OC-2026-096', material:'Clip injerto estándar', motivo:'Cancelada por cambio de especificación', fecha:'2026-04-18' },
+  { oc:'OC-2026-101', material:'Bolsa polietileno 3L', motivo:'Archivada por stock suficiente', fecha:'2026-04-27' },
+];
+
+const PRODUCTOS_ALTERNATIVOS = [
+  { producto:'Cinta injerto premium', alternativo:'Cinta biodegradable', cobertura:'Alta', stock:12400 },
+  { producto:'Fungicida preventivo A', alternativo:'Fungicida preventivo B', cobertura:'Media', stock:38 },
+  { producto:'Bolsa polietileno 4L', alternativo:'Contenedor rígido 4L', cobertura:'Baja', stock:2200 },
+];
 
 // ───────── Dashboard general ─────────
 function ModuleDashboard({ profile }) {
@@ -204,6 +280,7 @@ function ModuleContratos() {
     .map(c => ({...c, entrega: ENTREGA_CONTRATO[c.id] || c.fecha, archivo:`${c.id}-cotizacion.pdf`, oc:`OC-${c.id}.pdf`}))
     .sort((a,b) => new Date(a.entrega) - new Date(b.entrega));
   const cotizacionesOrdenadas = [...cotizaciones].sort((a,b) => new Date(a.entrega) - new Date(b.entrega));
+  const contratosCerrados = contratosOrdenados.slice(0,5).map((c,i) => ({...c, cierre:'2026-05-' + String(10+i*3).padStart(2,'0'), movilidad:['Cliente','Viveros','Por definir','Cliente','Viveros'][i]}));
   const abrirAsociados = (row) => toast.info('Archivos asociados', `${row.archivo} · ${row.oc}`);
   return (
     <div>
@@ -276,10 +353,27 @@ function ModuleContratos() {
         </div>
       )}
       {tab==='cerrados' && (
-        <div className="empty">
-          <div className="empty-icon"><Icon name="contracts" size={22}/></div>
-          <div className="empty-title">Sin contratos cerrados en este período</div>
-          <div className="empty-msg">Los contratos cerrados aparecerán aquí una vez que sean liquidados y archivados.</div>
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Contratos cerrados</h3><p className="card-sub">Incluye responsable de movilidad para coordinación de despacho.</p></div></div>
+          <div className="table-wrap">
+            <table className="tbl">
+              <thead><tr><th>Contrato</th><th>Cliente</th><th>Breeder</th><th>Variedad</th><th className="num">Plantas</th><th>Fecha cierre</th><th>Movilidad</th><th></th></tr></thead>
+              <tbody>
+                {contratosCerrados.map(c => (
+                  <tr key={c.id}>
+                    <td className="strong">{c.id}</td>
+                    <td>{c.cliente}</td>
+                    <td>{c.productor}</td>
+                    <td>{c.variedad}</td>
+                    <td className="num">{fmtNum(c.plantas)}</td>
+                    <td className="text-muted">{c.cierre}</td>
+                    <td><span className={"chip " + (c.movilidad==='Viveros'?'chip-leaf':c.movilidad==='Cliente'?'chip-info':'chip-warn')}>{c.movilidad}</span></td>
+                    <td><button className="btn btn-ghost btn-sm" title="Abrir cotización y orden de compra" onClick={() => abrirAsociados(c)}>→</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
@@ -440,12 +534,166 @@ function ModulePostventa() {
 }
 
 // ───────── Materiales ─────────
+function ModuleSalaProceso() {
+  const totalPatrones = PROCESO_PATRONES.reduce((a,b)=>a+b.procesado,0);
+  const pendientePatrones = PROCESO_PATRONES.reduce((a,b)=>a+b.pendiente,0);
+  const totalYemas = PROCESO_YEMAS.reduce((a,b)=>a+b.procesado,0);
+  const pendienteYemas = PROCESO_YEMAS.reduce((a,b)=>a+b.pendiente,0);
+  const renderRows = rows => rows.map(r => {
+    const total = r.procesado + r.pendiente;
+    const pct = total ? (r.procesado / total) * 100 : 0;
+    return (
+      <tr key={r.calibre + r.variedad}>
+        <td><span className="chip">{r.calibre}</span></td>
+        <td className="strong">{r.variedad}</td>
+        {'procedencia' in r && <td>{r.procedencia}</td>}
+        <td className="num">{fmtNum(r.procesado)}</td>
+        <td className="num">{fmtNum(r.pendiente)}</td>
+        <td>
+          <div className="row gap-8">
+            <div className="bar-track" style={{width:110, height:6}}><div className="bar-fill" style={{width:pct+'%', background:'var(--vet-leaf)'}}></div></div>
+            <span className="text-muted" style={{fontSize:12}}>{fmtPct(pct,0)}</span>
+          </div>
+        </td>
+      </tr>
+    );
+  });
+  return (
+    <div>
+      <div className="page-head">
+        <div>
+          <h1 className="page-title">Sala de Proceso</h1>
+          <p className="page-sub">Stock procesado por calibre, variedad, procedencia y saldo pendiente por calibrar.</p>
+        </div>
+      </div>
+      <div className="grid grid-4 mb-20">
+        <div className="kpi"><div className="kpi-accent"></div><div className="kpi-label">Patrones procesados</div><div className="kpi-value">{fmtNum(totalPatrones)}</div></div>
+        <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Patrones pendientes</div><div className="kpi-value">{fmtNum(pendientePatrones)}</div></div>
+        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Yemas procesadas</div><div className="kpi-value">{fmtNum(totalYemas)}</div></div>
+        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Yemas pendientes</div><div className="kpi-value">{fmtNum(pendienteYemas)}</div></div>
+      </div>
+      <div className="grid grid-2">
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Stock de patrones procesados</h3><p className="card-sub">Calibre, procedencia, variedad y saldo pendiente.</p></div></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Calibre</th><th>Variedad patrón</th><th>Procedencia</th><th className="num">Procesado</th><th className="num">Pendiente</th><th>Avance</th></tr></thead><tbody>{renderRows(PROCESO_PATRONES)}</tbody></table></div>
+        </div>
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Stock de yemas procesadas</h3><p className="card-sub">Calibre, variedad y saldo pendiente por calibrar.</p></div></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Calibre</th><th>Variedad</th><th className="num">Procesado</th><th className="num">Pendiente</th><th>Avance</th></tr></thead><tbody>{renderRows(PROCESO_YEMAS)}</tbody></table></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModuleVid() {
+  const total = VID_STOCK.reduce((a,b)=>a+b.plantas,0);
+  const aptas = VID_STOCK.filter(v=>v.estado==='Aptas para venta').reduce((a,b)=>a+b.plantas,0);
+  const recuperacion = VID_STOCK.filter(v=>v.estado==='En recuperación').reduce((a,b)=>a+b.plantas,0);
+  const campanas = [...new Set(VID_STOCK.map(v=>v.campana))];
+  return (
+    <div>
+      <div className="page-head"><div><h1 className="page-title">Vid</h1><p className="page-sub">Stock restante de plantas de vid por campaña y estado.</p></div></div>
+      <div className="grid grid-3 mb-20">
+        <div className="kpi"><div className="kpi-accent"></div><div className="kpi-label">Stock total vid</div><div className="kpi-value">{fmtNum(total)}</div></div>
+        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Aptas para venta</div><div className="kpi-value">{fmtNum(aptas)}</div></div>
+        <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">En recuperación</div><div className="kpi-value">{fmtNum(recuperacion)}</div></div>
+      </div>
+      <div className="grid grid-3 mb-20">
+        {campanas.map(c => {
+          const rows = VID_STOCK.filter(v=>v.campana===c);
+          return (
+            <div className="card" key={c}>
+              <div className="card-body">
+                <div className="label">Campaña</div>
+                <h3 style={{margin:'2px 0 12px', fontFamily:'var(--font-display)', fontSize:24, fontWeight:500}}>{c}</h3>
+                {rows.map(r => <div key={r.variedad+r.estado} className="row between" style={{padding:'8px 0', borderTop:'1px solid var(--line)'}}><span>{r.estado}</span><span className="strong">{fmtNum(r.plantas)}</span></div>)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="card">
+        <div className="card-header"><h3 className="card-title">Detalle de plantas de vid</h3></div>
+        <div className="table-wrap"><table className="tbl"><thead><tr><th>Campaña</th><th>Variedad</th><th>Estado</th><th className="num">Plantas</th><th>Ubicación</th></tr></thead><tbody>{VID_STOCK.map(v => <tr key={v.campana+v.variedad+v.estado}><td>{v.campana}</td><td className="strong">{v.variedad}</td><td><span className={"chip " + (v.estado==='Aptas para venta'?'chip-success':'chip-warn')}>{v.estado}</span></td><td className="num">{fmtNum(v.plantas)}</td><td className="text-muted">{v.ubicacion}</td></tr>)}</tbody></table></div>
+      </div>
+    </div>
+  );
+}
+
+function ModuleParrones() {
+  const totalEstimado = PARRONES_ESTIMACION.reduce((a,b)=>a+b.estimado,0);
+  const totalBarbadas = PARRONES_BARBADAS.reduce((a,b)=>a+b.estimado,0);
+  const totalCosechado = PARRONES_BARBADAS.reduce((a,b)=>a+b.cosechado,0);
+  return (
+    <div>
+      <div className="page-head"><div><h1 className="page-title">Parrones</h1><p className="page-sub">Estimación de patrones, fechas de poda, barbadas y evaluaciones de brotamiento.</p></div></div>
+      <div className="grid grid-3 mb-20">
+        <div className="kpi"><div className="kpi-accent"></div><div className="kpi-label">Patrones estimados</div><div className="kpi-value">{fmtNum(totalEstimado)}</div></div>
+        <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Barbadas estimadas</div><div className="kpi-value">{fmtNum(totalBarbadas)}</div></div>
+        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Avance cosecha</div><div className="kpi-value">{fmtPct((totalCosechado/totalBarbadas)*100,1)}</div></div>
+      </div>
+      <div className="grid grid-2 mb-20">
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Estimación de patrones y poda</h3><p className="card-sub">Fechas próximas de poda por sector.</p></div></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Patrón</th><th>Sector</th><th className="num">Estimado</th><th>Próxima poda</th><th>Responsable</th></tr></thead><tbody>{PARRONES_ESTIMACION.map(p => <tr key={p.patron+p.sector}><td className="strong">{p.patron}</td><td>{p.sector}</td><td className="num">{fmtNum(p.estimado)}</td><td><span className="chip chip-info">{p.poda}</span></td><td className="text-muted">{p.responsable}</td></tr>)}</tbody></table></div>
+        </div>
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Plantas comerciales barbadas</h3><p className="card-sub">Avance de cosecha y saldo pendiente en campo.</p></div></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Variedad</th><th>Sector</th><th className="num">Estimado</th><th className="num">Cosechado</th><th className="num">Pendiente</th><th>Avance</th></tr></thead><tbody>{PARRONES_BARBADAS.map(b => { const pct=(b.cosechado/b.estimado)*100; return <tr key={b.variedad}><td className="strong">{b.variedad}</td><td>{b.sector}</td><td className="num">{fmtNum(b.estimado)}</td><td className="num">{fmtNum(b.cosechado)}</td><td className="num">{fmtNum(b.estimado-b.cosechado)}</td><td><div className="bar-track" style={{width:100,height:6}}><div className="bar-fill" style={{width:pct+'%', background:'var(--vet-leaf)'}}></div></div></td></tr>; })}</tbody></table></div>
+        </div>
+      </div>
+      <div className="card">
+        <div className="card-header"><div><h3 className="card-title">Cronograma de brotamiento</h3><p className="card-sub">Evaluaciones calculadas automáticamente a 30, 60 y 90 días después del injerto.</p></div></div>
+        <div className="table-wrap"><table className="tbl"><thead><tr><th>ID</th><th>Ubicación</th><th>Patrón</th><th>Variedad</th><th>Fecha injertación</th><th>Eval. 30 días</th><th>Eval. 60 días</th><th>Eval. 90 días</th></tr></thead><tbody>{PARRONES_INJERTOS.map(i => <tr key={i.id}><td className="strong">{i.id}</td><td>{i.ubicacion}</td><td>{i.patron}</td><td>{i.variedad}</td><td className="text-muted">{i.injertacion}</td><td>{addDaysISO(i.injertacion,30)}</td><td>{addDaysISO(i.injertacion,60)}</td><td>{addDaysISO(i.injertacion,90)}</td></tr>)}</tbody></table></div>
+      </div>
+    </div>
+  );
+}
+
+function ModuleLogistica() {
+  const pendientes = ORDENES_COMPRA.reduce((a,b)=>a+b.pendiente,0);
+  const recibidas = ORDENES_COMPRA.filter(o=>o.estado==='Recibida').length;
+  const toast = useToast();
+  return (
+    <div>
+      <div className="page-head">
+        <div><h1 className="page-title">Logística</h1><p className="page-sub">Órdenes de compra, recepciones, compras archivadas y productos alternativos.</p></div>
+        <button className="btn btn-secondary" onClick={() => toast.success('Vista exportada', 'Resumen de logística generado')}><Icon name="download" size={14}/> Exportar</button>
+      </div>
+      <div className="grid grid-4 mb-20">
+        <div className="kpi"><div className="kpi-accent"></div><div className="kpi-label">Órdenes activas</div><div className="kpi-value">{ORDENES_COMPRA.length}</div></div>
+        <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Unidades pendientes</div><div className="kpi-value">{fmtNum(pendientes)}</div></div>
+        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">OC recibidas</div><div className="kpi-value">{recibidas}</div></div>
+        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Alternativos disponibles</div><div className="kpi-value">{PRODUCTOS_ALTERNATIVOS.length}</div></div>
+      </div>
+      <div className="card mb-20">
+        <div className="card-header"><div><h3 className="card-title">Órdenes de compra</h3><p className="card-sub">Recibido versus pendiente de llegada.</p></div></div>
+        <div className="table-wrap"><table className="tbl"><thead><tr><th>OC</th><th>Proveedor</th><th>Material</th><th className="num">Solicitado</th><th className="num">Recibido</th><th className="num">Pendiente</th><th>Llegada</th><th>Estado</th></tr></thead><tbody>{ORDENES_COMPRA.map(o => <tr key={o.oc}><td className="strong">{o.oc}</td><td>{o.proveedor}</td><td>{o.material}</td><td className="num">{fmtNum(o.solicitado)}</td><td className="num">{fmtNum(o.recibido)}</td><td className="num">{fmtNum(o.pendiente)}</td><td className="text-muted">{o.llegada}</td><td><span className={"chip " + (o.estado==='Recibida'?'chip-success':o.estado==='Parcial'?'chip-warn':'chip-info')}>{o.estado}</span></td></tr>)}</tbody></table></div>
+      </div>
+      <div className="grid grid-2">
+        <div className="card">
+          <div className="card-header"><h3 className="card-title">Compras archivadas o canceladas</h3></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>OC</th><th>Material</th><th>Motivo</th><th>Fecha</th></tr></thead><tbody>{COMPRAS_ARCHIVADAS.map(c => <tr key={c.oc}><td className="strong">{c.oc}</td><td>{c.material}</td><td className="text-muted">{c.motivo}</td><td>{c.fecha}</td></tr>)}</tbody></table></div>
+        </div>
+        <div className="card">
+          <div className="card-header"><h3 className="card-title">Productos alternativos disponibles</h3></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Producto</th><th>Alternativo</th><th>Cobertura</th><th className="num">Stock</th></tr></thead><tbody>{PRODUCTOS_ALTERNATIVOS.map(p => <tr key={p.producto}><td className="strong">{p.producto}</td><td>{p.alternativo}</td><td><span className={"chip " + (p.cobertura==='Alta'?'chip-success':p.cobertura==='Media'?'chip-warn':'chip-info')}>{p.cobertura}</span></td><td className="num">{fmtNum(p.stock)}</td></tr>)}</tbody></table></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ModuleMateriales() {
+  const toast = useToast();
   const activityRows = allActivities().filter(a => a.material);
   const usoAnunciado = activityRows.reduce((a,b)=>a + (Number(b.cantidad) || 0), 0);
   const descuentos = activityRows.filter(a => a.impacto === 'descuento_bodega').length;
   const stockOuts = activityRows.filter(a => a.impacto === 'stock_out').length;
   const alarmas = activityRows.filter(a => a.alarma).length;
+  const vencen6Meses = MATERIAL_VENCIMIENTOS.length;
+  const fichas = MATERIALES.slice(0,4).map((m,i) => ({...m, ficha:i%2===0?'Adjunta':'Pendiente'}));
   return (
     <div>
       <div className="page-head">
@@ -462,7 +710,7 @@ function ModuleMateriales() {
         <div className="kpi"><div className="kpi-accent"></div><div className="kpi-label">Utilización anunciada</div><div className="kpi-value">{fmtNum(usoAnunciado)}</div><div className="kpi-foot">Desde actividades</div></div>
         <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Descuentos bodega</div><div className="kpi-value">{descuentos}</div><div className="kpi-foot">Programados</div></div>
         <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Alertas stock-out</div><div className="kpi-value" style={{color:stockOuts?'var(--danger)':'inherit'}}>{stockOuts}</div><div className="kpi-foot">Por actividad</div></div>
-        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Alarmas generales</div><div className="kpi-value">{alarmas}</div><div className="kpi-foot">Materiales vinculados</div></div>
+        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Vencen en 6 meses</div><div className="kpi-value">{vencen6Meses}</div><div className="kpi-foot">Almacén</div></div>
       </div>
       <div className="card mb-20">
         <div className="card-header"><div><h3 className="card-title">Actividades vinculadas a materiales</h3><p className="card-sub">Alimentan utilización anunciada, descuentos de bodega y alertas.</p></div></div>
@@ -478,6 +726,54 @@ function ModuleMateriales() {
                   <td className="num">{fmtNum(Number(a.cantidad) || 0)} <span className="text-muted">{a.unidad}</span></td>
                   <td><span className={"chip " + (a.impacto==='stock_out'?'chip-danger':a.impacto==='descuento_bodega'?'chip-warn':'chip-info')}>{a.impacto.replace(/_/g,' ')}</span></td>
                   <td className="text-muted">{a.alarma}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div className="grid grid-2 mb-20">
+        <div className="card">
+          <div className="card-header">
+            <div>
+              <h3 className="card-title">Productos próximos a vencer</h3>
+              <p className="card-sub">Informe demo para utilización en aplicaciones programadas dentro de 6 meses.</p>
+            </div>
+            <button className="btn btn-secondary btn-sm" onClick={() => toast.success('Informe descargado', 'Productos a vencer en 6 meses exportados')}><Icon name="download" size={13}/> Informe</button>
+          </div>
+          <div className="table-wrap">
+            <table className="tbl">
+              <thead><tr><th>SKU</th><th>Producto</th><th>Lote</th><th>Vence</th><th className="num">Stock</th><th>Uso sugerido</th></tr></thead>
+              <tbody>
+                {MATERIAL_VENCIMIENTOS.map(v => (
+                  <tr key={v.sku}>
+                    <td className="strong">{v.sku}</td><td>{v.producto}</td><td>{v.lote}</td><td><span className="chip chip-warn">{v.vence}</span></td><td className="num">{fmtNum(v.stock)} {v.unidad}</td><td className="text-muted">{v.uso}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Jabas y bins</h3><p className="card-sub">Control de stock disponible, retornos pendientes y saldos por devolver.</p></div></div>
+          <div className="table-wrap">
+            <table className="tbl">
+              <thead><tr><th>Item</th><th className="num">Stock disponible</th><th className="num">Retorno pendiente</th><th className="num">Saldo por devolver</th></tr></thead>
+              <tbody>{ENVASES_STOCK.map(e => <tr key={e.item}><td className="strong">{e.item}</td><td className="num">{fmtNum(e.disponible)}</td><td className="num">{fmtNum(e.retorno)}</td><td className="num">{fmtNum(e.devolver)}</td></tr>)}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div className="card mb-20">
+        <div className="card-header"><div><h3 className="card-title">Fichas técnicas de productos</h3><p className="card-sub">Demo de adjuntos para productos de almacén.</p></div></div>
+        <div className="table-wrap">
+          <table className="tbl">
+            <thead><tr><th>SKU</th><th>Producto</th><th>Categoría</th><th>Ficha técnica</th><th></th></tr></thead>
+            <tbody>
+              {fichas.map(f => (
+                <tr key={f.sku}>
+                  <td className="strong">{f.sku}</td><td>{f.nombre}</td><td><span className="chip">{f.categoria}</span></td><td><span className={"chip " + (f.ficha==='Adjunta'?'chip-success':'chip-warn')}>{f.ficha}</span></td>
+                  <td className="row gap-8"><button className="btn btn-secondary btn-sm" onClick={() => toast.success('Ficha adjuntada', `${f.nombre} actualizada`)}><Icon name="plus" size={13}/> Adjuntar ficha técnica</button><button className="btn btn-ghost btn-sm" onClick={() => toast.info('Vista de ficha', `Ficha técnica de ${f.nombre}`)}><Icon name="eye" size={13}/> Ver ficha</button></td>
                 </tr>
               ))}
             </tbody>
@@ -1079,8 +1375,8 @@ function CampoMovil() {
 
 Object.assign(window, {
   ModuleDashboard, ModuleContratos, ModuleClientes, ModulePostventa,
-  ModuleMateriales, ModuleActividades, ModuleCalendario, ModuleLotes,
-  ModuleLiberacion, ModuleCostos, ModuleMaestros, CampoMovil,
+  ModuleSalaProceso, ModuleVid, ModuleParrones, ModuleMateriales, ModuleLogistica,
+  ModuleActividades, ModuleCalendario, ModuleLotes, ModuleLiberacion, ModuleCostos, ModuleMaestros, CampoMovil,
   ModuleAlertas,
   FilterChip,
 });
