@@ -111,6 +111,110 @@ const PRODUCTOS_ALTERNATIVOS = [
   { producto:'Bolsa polietileno 4L', alternativo:'Contenedor rígido 4L', cobertura:'Baja', stock:2200 },
 ];
 
+const LABORES_DIA = {
+  sala:[
+    { labor:'Poda y guarda de material', responsable:'Sala proceso', estado:'Pendiente' },
+    { labor:'Injertos bolsa por cliente', responsable:'Equipo injertación', estado:'Programado' },
+    { labor:'Registro de cámara de calor', responsable:'Calidad proceso', estado:'Pendiente' },
+  ],
+  sombreadero:[
+    { labor:'Revisión de humedad de sustrato', responsable:'Sombreadero A', estado:'Programado' },
+    { labor:'Aplicación preventiva foliar', responsable:'Equipo fitosanitario', estado:'Pendiente' },
+    { labor:'Revisión de sombreadero 3', responsable:'Supervisor producción', estado:'Pendiente' },
+  ],
+  parrones:[
+    { labor:'Poda sector Parrón 1', responsable:'Equipo Parrones', estado:'Programado' },
+    { labor:'Siembra patrón Salt Creek', responsable:'Campo', estado:'Pendiente' },
+    { labor:'Registro de plantación lote PB-002', responsable:'Supervisor Campo', estado:'Pendiente' },
+  ],
+};
+
+const SALA_REGISTROS = [
+  { fecha:'2026-05-26', tipo:'Poda - guarda material', cliente:'Agrolatina', variedad:'Timpson', cantidad:8400, estado:'Registrado' },
+  { fecha:'2026-05-26', tipo:'Injertos bolsa', cliente:'Don Guillermo', variedad:'Autumn Crisp', cantidad:6200, estado:'En proceso' },
+  { fecha:'2026-05-27', tipo:'Injertos barbada', cliente:'Florida Blanca', variedad:'Ruby Rush', cantidad:3100, estado:'Programado' },
+  { fecha:'2026-05-27', tipo:'Registro proceso barbada', cliente:'Parvina', variedad:'Itum 16', cantidad:1800, estado:'Programado' },
+];
+
+const ENCALLADO_CAMARA = [
+  { lote:'L-2025-004', camara:'Cámara calor 1', fecha:'2026-05-24', injertos:4200, encallado:91, resultado:'Aprobado' },
+  { lote:'L-2025-008', camara:'Cámara calor 2', fecha:'2026-05-25', injertos:2600, encallado:78, resultado:'Observación' },
+  { lote:'L-2025-011', camara:'Cámara calor 1', fecha:'2026-05-26', injertos:3100, encallado:86, resultado:'Aprobado' },
+];
+
+const APLICACIONES_PROGRAMA = {
+  sala:[
+    { fecha:'2026-05-27', area:'Sala de Proceso', producto:'Fungicida preventivo A', dosis:'120 cc/100L', estado:'Programado', cartilla:'C-APL-SALA-01' },
+    { fecha:'2026-05-28', area:'Cámara calor', producto:'Desinfectante superficie', dosis:'2%', estado:'Pendiente', cartilla:'C-APL-SALA-02' },
+  ],
+  sombreadero:[
+    { fecha:'2026-05-27', area:'Sombreadero 1', producto:'Bioestimulante radicular', dosis:'180 cc/100L', estado:'Programado', cartilla:'C-APL-SOM-01' },
+    { fecha:'2026-05-29', area:'Sombreadero 3', producto:'Fungicida preventivo B', dosis:'100 cc/100L', estado:'Pendiente', cartilla:'C-APL-SOM-02' },
+  ],
+  parrones:[
+    { fecha:'2026-05-28', area:'Parrón 1', producto:'Fungicida preventivo A', dosis:'140 cc/100L', estado:'Programado', cartilla:'C-APL-PAR-01' },
+    { fecha:'2026-05-30', area:'Parrón 4', producto:'Adherente agrícola', dosis:'60 cc/100L', estado:'Pendiente', cartilla:'C-APL-PAR-02' },
+  ],
+};
+
+const SOMBREADERO_PLANTONES = [
+  { sector:'Sombreadero 1', variedad:'Sweet Globe', estimado:18500, disponible:12400, estado:'En desarrollo' },
+  { sector:'Sombreadero 2', variedad:'Autumn Crisp', estimado:22000, disponible:16200, estado:'Apto próxima etapa' },
+  { sector:'Sombreadero 3', variedad:'Ruby Rush', estimado:9600, disponible:7100, estado:'Observación' },
+];
+
+const PARRONES_SIEMBRA_PLANTACION = [
+  { fecha:'2026-05-22', labor:'Siembra', sector:'Parrón 2', patron:'Salt Creek', plantas:8400, estado:'Registrado' },
+  { fecha:'2026-05-25', labor:'Plantación', sector:'Parrón 1', patron:'Freedom', plantas:6200, estado:'Registrado' },
+  { fecha:'2026-05-28', labor:'Siembra', sector:'Parrón 4', patron:'Harmony', plantas:4800, estado:'Programado' },
+];
+
+const RIEGO_PROGRAMA = [
+  { fecha:'2026-05-26', area:'Sombreadero 1', turno:'Mañana', duracion:'45 min', estado:'Ejecutado', humedad:'28%' },
+  { fecha:'2026-05-26', area:'Parrón 2', turno:'Tarde', duracion:'60 min', estado:'Programado', humedad:'24%' },
+  { fecha:'2026-05-27', area:'Vid Sector V2', turno:'Mañana', duracion:'35 min', estado:'Pendiente', humedad:'22%' },
+  { fecha:'2026-05-27', area:'Sala proceso', turno:'Noche', duracion:'20 min', estado:'Programado', humedad:'30%' },
+];
+
+const ENVIO_PROGRAMADO = [
+  { fecha:'2026-06-03', cliente:'Don Luis', lote:'L-2025-006', plantas:34000, destino:'Maule', estado:'Programado' },
+  { fecha:'2026-06-08', cliente:'SAMNSA', lote:'L-2025-005', plantas:30000, destino:'Sonora, MX', estado:'Documentación' },
+  { fecha:'2026-06-12', cliente:'AIB', lote:'L-2025-004', plantas:20000, destino:'Coquimbo', estado:'Confirmado' },
+];
+
+const REGISTRO_ENVIOS = [
+  { fecha:'2026-05-18', cliente:'Danper', guia:'GD-8821', transportista:'Andes Cargo', plantas:18000, estado:'Entregado' },
+  { fecha:'2026-05-21', cliente:'Agrolatina', guia:'GD-8844', transportista:'Ruta Norte', plantas:24500, estado:'En tránsito' },
+];
+
+const ANALISIS_LOTE = [
+  { lote:'L-2025-001', tipo:'Nematológico', fecha:'2026-05-20', resultado:'Sin detección', estado:'OK' },
+  { lote:'L-2025-003', tipo:'Foliar', fecha:'2026-05-21', resultado:'N bajo, corregir fertilización', estado:'Observación' },
+  { lote:'L-2025-004', tipo:'Micológico', fecha:'2026-05-22', resultado:'Sin hongos activos', estado:'OK' },
+  { lote:'L-2025-008', tipo:'Virus', fecha:'2026-05-23', resultado:'Muestra en confirmación', estado:'Pendiente' },
+  { lote:'L-2025-011', tipo:'Humedad / viabilidad', fecha:'2026-05-24', resultado:'Viabilidad 93%', estado:'OK' },
+];
+
+function DailyLaborCard({ title, rows }) {
+  const toast = useToast();
+  return (
+    <div className="card mb-20">
+      <div className="card-header"><div><h3 className="card-title">{title}</h3><p className="card-sub">Checklist diario de labores a realizar.</p></div></div>
+      <div className="table-wrap"><table className="tbl"><thead><tr><th>Labor</th><th>Responsable</th><th>Estado</th><th></th></tr></thead><tbody>{rows.map((r,i) => <tr key={r.labor}><td className="strong">{r.labor}</td><td>{r.responsable}</td><td><span className={"chip " + (r.estado==='Pendiente'?'chip-warn':'chip-info')}>{r.estado}</span></td><td><button className="btn btn-primary btn-sm" onClick={() => toast.success('Labor confirmada', r.labor)}><Icon name="check" size={13}/> Confirmar labor</button></td></tr>)}</tbody></table></div>
+    </div>
+  );
+}
+
+function AplicacionesCard({ title, rows }) {
+  const toast = useToast();
+  return (
+    <div className="card mb-20">
+      <div className="card-header"><div><h3 className="card-title">{title}</h3><p className="card-sub">Programa, cartilla y registro de aplicaciones.</p></div></div>
+      <div className="table-wrap"><table className="tbl"><thead><tr><th>Fecha</th><th>Área</th><th>Producto</th><th>Dosis</th><th>Cartilla</th><th>Estado</th><th></th></tr></thead><tbody>{rows.map(r => <tr key={r.fecha+r.area+r.producto}><td className="text-muted">{r.fecha}</td><td>{r.area}</td><td className="strong">{r.producto}</td><td>{r.dosis}</td><td><span className="chip chip-info">{r.cartilla}</span></td><td><span className={"chip " + (r.estado==='Programado'?'chip-leaf':'chip-warn')}>{r.estado}</span></td><td><button className="btn btn-ghost btn-sm" onClick={() => toast.success('Aplicación registrada', `${r.area} · ${r.producto}`)}><Icon name="check" size={13}/> Registrar</button></td></tr>)}</tbody></table></div>
+    </div>
+  );
+}
+
 // ───────── Dashboard general ─────────
 function ModuleDashboard({ profile }) {
   const ag = aggregateER(CONTRATOS_ER);
@@ -535,10 +639,15 @@ function ModulePostventa() {
 
 // ───────── Materiales ─────────
 function ModuleSalaProceso() {
+  const [clienteFiltro, setClienteFiltro] = React.useState('');
+  const [tipoFiltro, setTipoFiltro] = React.useState('');
   const totalPatrones = PROCESO_PATRONES.reduce((a,b)=>a+b.procesado,0);
   const pendientePatrones = PROCESO_PATRONES.reduce((a,b)=>a+b.pendiente,0);
   const totalYemas = PROCESO_YEMAS.reduce((a,b)=>a+b.procesado,0);
   const pendienteYemas = PROCESO_YEMAS.reduce((a,b)=>a+b.pendiente,0);
+  const clientesSala = [...new Set(SALA_REGISTROS.map(r=>r.cliente))];
+  const tiposSala = [...new Set(SALA_REGISTROS.map(r=>r.tipo))];
+  const registrosFiltrados = SALA_REGISTROS.filter(r => (!clienteFiltro || r.cliente === clienteFiltro) && (!tipoFiltro || r.tipo === tipoFiltro));
   const renderRows = rows => rows.map(r => {
     const total = r.procesado + r.pendiente;
     const pct = total ? (r.procesado / total) * 100 : 0;
@@ -572,7 +681,8 @@ function ModuleSalaProceso() {
         <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Yemas procesadas</div><div className="kpi-value">{fmtNum(totalYemas)}</div></div>
         <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Yemas pendientes</div><div className="kpi-value">{fmtNum(pendienteYemas)}</div></div>
       </div>
-      <div className="grid grid-2">
+      <DailyLaborCard title="Labores del día · Sala de Proceso" rows={LABORES_DIA.sala} />
+      <div className="grid grid-2 mb-20">
         <div className="card">
           <div className="card-header"><div><h3 className="card-title">Stock de patrones procesados</h3><p className="card-sub">Calibre, procedencia, variedad y saldo pendiente.</p></div></div>
           <div className="table-wrap"><table className="tbl"><thead><tr><th>Calibre</th><th>Variedad patrón</th><th>Procedencia</th><th className="num">Procesado</th><th className="num">Pendiente</th><th>Avance</th></tr></thead><tbody>{renderRows(PROCESO_PATRONES)}</tbody></table></div>
@@ -582,6 +692,21 @@ function ModuleSalaProceso() {
           <div className="table-wrap"><table className="tbl"><thead><tr><th>Calibre</th><th>Variedad</th><th className="num">Procesado</th><th className="num">Pendiente</th><th>Avance</th></tr></thead><tbody>{renderRows(PROCESO_YEMAS)}</tbody></table></div>
         </div>
       </div>
+      <div className="grid grid-2 mb-20">
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Registro de poda e injertos</h3><p className="card-sub">Poda, guarda material, injertos bolsa/barbada por cliente y proceso de barbada.</p></div></div>
+          <div className="filterbar" style={{gridTemplateColumns:'repeat(2, minmax(0,1fr))', margin:'0 16px 16px'}}>
+            <div className="field"><label className="label">Cliente</label><select className="select" value={clienteFiltro} onChange={e=>setClienteFiltro(e.target.value)}><option value="">Todos</option>{clientesSala.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+            <div className="field"><label className="label">Tipo</label><select className="select" value={tipoFiltro} onChange={e=>setTipoFiltro(e.target.value)}><option value="">Todos</option>{tiposSala.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
+          </div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Fecha</th><th>Tipo</th><th>Cliente</th><th>Variedad</th><th className="num">Cantidad</th><th>Estado</th></tr></thead><tbody>{registrosFiltrados.map(r => <tr key={r.fecha+r.tipo+r.cliente}><td className="text-muted">{r.fecha}</td><td className="strong">{r.tipo}</td><td>{r.cliente}</td><td>{r.variedad}</td><td className="num">{fmtNum(r.cantidad)}</td><td><span className={"chip " + (r.estado==='Registrado'?'chip-success':r.estado==='En proceso'?'chip-info':'chip-warn')}>{r.estado}</span></td></tr>)}</tbody></table></div>
+        </div>
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Evaluación de encallado</h3><p className="card-sub">Resultado de injertos en cámara de calor.</p></div></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Lote</th><th>Cámara</th><th>Fecha</th><th className="num">Injertos</th><th className="num">% encallado</th><th>Resultado</th></tr></thead><tbody>{ENCALLADO_CAMARA.map(e => <tr key={e.lote+e.fecha}><td className="strong">{e.lote}</td><td>{e.camara}</td><td className="text-muted">{e.fecha}</td><td className="num">{fmtNum(e.injertos)}</td><td className="num">{fmtPct(e.encallado,0)}</td><td><span className={"chip " + (e.resultado==='Aprobado'?'chip-success':'chip-warn')}>{e.resultado}</span></td></tr>)}</tbody></table></div>
+        </div>
+      </div>
+      <AplicacionesCard title="Aplicaciones · Sala de Proceso" rows={APLICACIONES_PROGRAMA.sala} />
     </div>
   );
 }
@@ -621,6 +746,31 @@ function ModuleVid() {
   );
 }
 
+function ModuleSombreadero() {
+  const totalEstimado = SOMBREADERO_PLANTONES.reduce((a,b)=>a+b.estimado,0);
+  const totalDisponible = SOMBREADERO_PLANTONES.reduce((a,b)=>a+b.disponible,0);
+  return (
+    <div>
+      <div className="page-head"><div><h1 className="page-title">Sombreadero</h1><p className="page-sub">Labores diarias, estimación de plantones, aplicaciones y programa de riego.</p></div></div>
+      <div className="grid grid-3 mb-20">
+        <div className="kpi"><div className="kpi-accent"></div><div className="kpi-label">Plantones estimados</div><div className="kpi-value">{fmtNum(totalEstimado)}</div></div>
+        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Disponibles</div><div className="kpi-value">{fmtNum(totalDisponible)}</div></div>
+        <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Avance productivo</div><div className="kpi-value">{fmtPct((totalDisponible/totalEstimado)*100,1)}</div></div>
+      </div>
+      <DailyLaborCard title="Labores del día · Sombreadero" rows={LABORES_DIA.sombreadero} />
+      <div className="card mb-20">
+        <div className="card-header"><div><h3 className="card-title">Estimación de plantones</h3><p className="card-sub">Resumen según producción por sector.</p></div></div>
+        <div className="table-wrap"><table className="tbl"><thead><tr><th>Sector</th><th>Variedad</th><th className="num">Estimado</th><th className="num">Disponible</th><th>Estado</th></tr></thead><tbody>{SOMBREADERO_PLANTONES.map(s => <tr key={s.sector+s.variedad}><td className="strong">{s.sector}</td><td>{s.variedad}</td><td className="num">{fmtNum(s.estimado)}</td><td className="num">{fmtNum(s.disponible)}</td><td><span className={"chip " + (s.estado==='Observación'?'chip-warn':'chip-success')}>{s.estado}</span></td></tr>)}</tbody></table></div>
+      </div>
+      <AplicacionesCard title="Aplicaciones · Sombreadero" rows={APLICACIONES_PROGRAMA.sombreadero} />
+      <div className="card">
+        <div className="card-header"><div><h3 className="card-title">Programa y registro de riego</h3><p className="card-sub">Riego específico de áreas de sombreadero.</p></div></div>
+        <div className="table-wrap"><table className="tbl"><thead><tr><th>Fecha</th><th>Área</th><th>Turno</th><th>Duración</th><th>Humedad</th><th>Estado</th></tr></thead><tbody>{RIEGO_PROGRAMA.filter(r=>r.area.includes('Sombreadero')).map(r => <tr key={r.fecha+r.area+r.turno}><td className="text-muted">{r.fecha}</td><td className="strong">{r.area}</td><td>{r.turno}</td><td>{r.duracion}</td><td>{r.humedad}</td><td><span className={"chip " + (r.estado==='Ejecutado'?'chip-success':r.estado==='Programado'?'chip-info':'chip-warn')}>{r.estado}</span></td></tr>)}</tbody></table></div>
+      </div>
+    </div>
+  );
+}
+
 function ModuleParrones() {
   const totalEstimado = PARRONES_ESTIMACION.reduce((a,b)=>a+b.estimado,0);
   const totalBarbadas = PARRONES_BARBADAS.reduce((a,b)=>a+b.estimado,0);
@@ -633,6 +783,7 @@ function ModuleParrones() {
         <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Barbadas estimadas</div><div className="kpi-value">{fmtNum(totalBarbadas)}</div></div>
         <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Avance cosecha</div><div className="kpi-value">{fmtPct((totalCosechado/totalBarbadas)*100,1)}</div></div>
       </div>
+      <DailyLaborCard title="Labores del día · Parrones" rows={LABORES_DIA.parrones} />
       <div className="grid grid-2 mb-20">
         <div className="card">
           <div className="card-header"><div><h3 className="card-title">Estimación de patrones y poda</h3><p className="card-sub">Fechas próximas de poda por sector.</p></div></div>
@@ -646,6 +797,11 @@ function ModuleParrones() {
       <div className="card">
         <div className="card-header"><div><h3 className="card-title">Cronograma de brotamiento</h3><p className="card-sub">Evaluaciones calculadas automáticamente a 30, 60 y 90 días después del injerto.</p></div></div>
         <div className="table-wrap"><table className="tbl"><thead><tr><th>ID</th><th>Ubicación</th><th>Patrón</th><th>Variedad</th><th>Fecha injertación</th><th>Eval. 30 días</th><th>Eval. 60 días</th><th>Eval. 90 días</th></tr></thead><tbody>{PARRONES_INJERTOS.map(i => <tr key={i.id}><td className="strong">{i.id}</td><td>{i.ubicacion}</td><td>{i.patron}</td><td>{i.variedad}</td><td className="text-muted">{i.injertacion}</td><td>{addDaysISO(i.injertacion,30)}</td><td>{addDaysISO(i.injertacion,60)}</td><td>{addDaysISO(i.injertacion,90)}</td></tr>)}</tbody></table></div>
+      </div>
+      <AplicacionesCard title="Aplicaciones · Parrones" rows={APLICACIONES_PROGRAMA.parrones} />
+      <div className="card" style={{marginTop:20}}>
+        <div className="card-header"><div><h3 className="card-title">Registros de siembra y plantación</h3><p className="card-sub">Control diario por sector, patrón y estado.</p></div></div>
+        <div className="table-wrap"><table className="tbl"><thead><tr><th>Fecha</th><th>Labor</th><th>Sector</th><th>Patrón</th><th className="num">Plantas</th><th>Estado</th></tr></thead><tbody>{PARRONES_SIEMBRA_PLANTACION.map(r => <tr key={r.fecha+r.labor+r.sector}><td className="text-muted">{r.fecha}</td><td className="strong">{r.labor}</td><td>{r.sector}</td><td>{r.patron}</td><td className="num">{fmtNum(r.plantas)}</td><td><span className={"chip " + (r.estado==='Registrado'?'chip-success':'chip-warn')}>{r.estado}</span></td></tr>)}</tbody></table></div>
       </div>
     </div>
   );
@@ -671,6 +827,16 @@ function ModuleLogistica() {
         <div className="card-header"><div><h3 className="card-title">Órdenes de compra</h3><p className="card-sub">Recibido versus pendiente de llegada.</p></div></div>
         <div className="table-wrap"><table className="tbl"><thead><tr><th>OC</th><th>Proveedor</th><th>Material</th><th className="num">Solicitado</th><th className="num">Recibido</th><th className="num">Pendiente</th><th>Llegada</th><th>Estado</th></tr></thead><tbody>{ORDENES_COMPRA.map(o => <tr key={o.oc}><td className="strong">{o.oc}</td><td>{o.proveedor}</td><td>{o.material}</td><td className="num">{fmtNum(o.solicitado)}</td><td className="num">{fmtNum(o.recibido)}</td><td className="num">{fmtNum(o.pendiente)}</td><td className="text-muted">{o.llegada}</td><td><span className={"chip " + (o.estado==='Recibida'?'chip-success':o.estado==='Parcial'?'chip-warn':'chip-info')}>{o.estado}</span></td></tr>)}</tbody></table></div>
       </div>
+      <div className="grid grid-2 mb-20">
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Fechas programadas de envío</h3><p className="card-sub">Programación logística por cliente, lote y destino.</p></div></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Fecha</th><th>Cliente</th><th>Lote</th><th className="num">Plantas</th><th>Destino</th><th>Estado</th></tr></thead><tbody>{ENVIO_PROGRAMADO.map(e => <tr key={e.fecha+e.lote}><td className="text-muted">{e.fecha}</td><td className="strong">{e.cliente}</td><td>{e.lote}</td><td className="num">{fmtNum(e.plantas)}</td><td>{e.destino}</td><td><span className={"chip " + (e.estado==='Confirmado'?'chip-success':'chip-info')}>{e.estado}</span></td></tr>)}</tbody></table></div>
+        </div>
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Registro de envíos</h3><p className="card-sub">Guías, transportista y estado de despacho.</p></div></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Fecha</th><th>Cliente</th><th>Guía</th><th>Transportista</th><th className="num">Plantas</th><th>Estado</th></tr></thead><tbody>{REGISTRO_ENVIOS.map(e => <tr key={e.guia}><td className="text-muted">{e.fecha}</td><td className="strong">{e.cliente}</td><td>{e.guia}</td><td>{e.transportista}</td><td className="num">{fmtNum(e.plantas)}</td><td><span className={"chip " + (e.estado==='Entregado'?'chip-success':'chip-warn')}>{e.estado}</span></td></tr>)}</tbody></table></div>
+        </div>
+      </div>
       <div className="grid grid-2">
         <div className="card">
           <div className="card-header"><h3 className="card-title">Compras archivadas o canceladas</h3></div>
@@ -680,6 +846,26 @@ function ModuleLogistica() {
           <div className="card-header"><h3 className="card-title">Productos alternativos disponibles</h3></div>
           <div className="table-wrap"><table className="tbl"><thead><tr><th>Producto</th><th>Alternativo</th><th>Cobertura</th><th className="num">Stock</th></tr></thead><tbody>{PRODUCTOS_ALTERNATIVOS.map(p => <tr key={p.producto}><td className="strong">{p.producto}</td><td>{p.alternativo}</td><td><span className={"chip " + (p.cobertura==='Alta'?'chip-success':p.cobertura==='Media'?'chip-warn':'chip-info')}>{p.cobertura}</span></td><td className="num">{fmtNum(p.stock)}</td></tr>)}</tbody></table></div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ModuleRiego() {
+  const ejecutados = RIEGO_PROGRAMA.filter(r=>r.estado==='Ejecutado').length;
+  const pendientes = RIEGO_PROGRAMA.filter(r=>r.estado==='Pendiente').length;
+  const programados = RIEGO_PROGRAMA.filter(r=>r.estado==='Programado').length;
+  return (
+    <div>
+      <div className="page-head"><div><h1 className="page-title">Riego</h1><p className="page-sub">Programa y registro de riego por área, turno y estado.</p></div></div>
+      <div className="grid grid-3 mb-20">
+        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Ejecutados</div><div className="kpi-value">{ejecutados}</div></div>
+        <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Programados</div><div className="kpi-value">{programados}</div></div>
+        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Pendientes</div><div className="kpi-value">{pendientes}</div></div>
+      </div>
+      <div className="card">
+        <div className="card-header"><div><h3 className="card-title">Programa y registro de riego en áreas</h3><p className="card-sub">Control operativo por área y humedad registrada.</p></div></div>
+        <div className="table-wrap"><table className="tbl"><thead><tr><th>Fecha</th><th>Área</th><th>Turno</th><th>Duración</th><th>Humedad</th><th>Estado</th></tr></thead><tbody>{RIEGO_PROGRAMA.map(r => <tr key={r.fecha+r.area+r.turno}><td className="text-muted">{r.fecha}</td><td className="strong">{r.area}</td><td>{r.turno}</td><td>{r.duracion}</td><td>{r.humedad}</td><td><span className={"chip " + (r.estado==='Ejecutado'?'chip-success':r.estado==='Programado'?'chip-info':'chip-warn')}>{r.estado}</span></td></tr>)}</tbody></table></div>
       </div>
     </div>
   );
@@ -959,6 +1145,10 @@ function ModuleCalendario() {
           </div>
         </div>
       </div>
+      <div className="card" style={{marginTop:20}}>
+        <div className="card-header"><div><h3 className="card-title">Calendario de injertación</h3><p className="card-sub">Fechas de injertación y evaluaciones derivadas por lote.</p></div></div>
+        <div className="table-wrap"><table className="tbl"><thead><tr><th>ID</th><th>Ubicación</th><th>Patrón</th><th>Variedad</th><th>Injertación</th><th>30 días</th><th>60 días</th><th>90 días</th></tr></thead><tbody>{PARRONES_INJERTOS.map(i => <tr key={i.id}><td className="strong">{i.id}</td><td>{i.ubicacion}</td><td>{i.patron}</td><td>{i.variedad}</td><td className="text-muted">{i.injertacion}</td><td>{addDaysISO(i.injertacion,30)}</td><td>{addDaysISO(i.injertacion,60)}</td><td>{addDaysISO(i.injertacion,90)}</td></tr>)}</tbody></table></div>
+      </div>
     </div>
   );
 }
@@ -1036,6 +1226,10 @@ function ModuleLiberacion() {
           <h1 className="page-title">Liberación de calidad</h1>
           <p className="page-sub">Visado y aprobación de lotes para despacho</p>
         </div>
+      </div>
+      <div className="card mb-20">
+        <div className="card-header"><div><h3 className="card-title">Resultados de análisis por lote</h3><p className="card-sub">Nematológico, foliar, micológico, virus, humedad y viabilidad.</p></div></div>
+        <div className="table-wrap"><table className="tbl"><thead><tr><th>Lote</th><th>Tipo análisis</th><th>Fecha</th><th>Resultado</th><th>Estado</th></tr></thead><tbody>{ANALISIS_LOTE.map(a => <tr key={a.lote+a.tipo}><td className="strong">{a.lote}</td><td>{a.tipo}</td><td className="text-muted">{a.fecha}</td><td>{a.resultado}</td><td><span className={"chip " + (a.estado==='OK'?'chip-success':a.estado==='Pendiente'?'chip-info':'chip-warn')}>{a.estado}</span></td></tr>)}</tbody></table></div>
       </div>
       <div className="card mb-20">
         <div className="card-header"><div><h3 className="card-title">Checklist bajo demanda</h3><p className="card-sub">Parámetros editables por solicitud u orden de cliente.</p></div></div>
@@ -1375,7 +1569,7 @@ function CampoMovil() {
 
 Object.assign(window, {
   ModuleDashboard, ModuleContratos, ModuleClientes, ModulePostventa,
-  ModuleSalaProceso, ModuleVid, ModuleParrones, ModuleMateriales, ModuleLogistica,
+  ModuleSalaProceso, ModuleVid, ModuleSombreadero, ModuleParrones, ModuleRiego, ModuleMateriales, ModuleLogistica,
   ModuleActividades, ModuleCalendario, ModuleLotes, ModuleLiberacion, ModuleCostos, ModuleMaestros, CampoMovil,
   ModuleAlertas,
   FilterChip,

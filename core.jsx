@@ -253,7 +253,7 @@ const PROFILES = {
     iconClass:'',
     badges:['Todo el sistema','Gerencia 2026'],
     avatar:'GE', email:'gerencia@viveroseltambo.cl',
-    modules:['dashboard','contracts','process-room','vid','parrones','materials','logistics','activities','calendar','lots','quality','money','client','postsale','masters','directory'],
+    modules:['dashboard','contracts','process-room','vid','sombreadero','parrones','riego','materials','logistics','activities','calendar','lots','quality','money','client','postsale','masters','directory'],
   },
   directorio: {
     id:'directorio',
@@ -288,12 +288,12 @@ const PROFILES = {
   produccion: {
     id:'produccion',
     nombre:'Producción',
-    desc:'Sala de proceso, vid, parrones, materiales, calendario, actividades, lotes y calidad.',
+    desc:'Sala de proceso, vid, sombreadero, parrones, riego, materiales, calendario, actividades, lotes y calidad.',
     icon:'sprout',
     iconClass:'',
     badges:['Sala proceso','Parrones','Vid'],
     avatar:'PR', email:'produccion@viveroseltambo.cl',
-    modules:['dashboard','process-room','vid','parrones','materials','activities','calendar','lots','quality'],
+    modules:['dashboard','process-room','vid','sombreadero','parrones','riego','materials','activities','calendar','lots','quality'],
   },
   campo: {
     id:'campo',
@@ -315,7 +315,9 @@ const MODULES = {
   postsale:     { label:'Postventa / recalce', icon:'postsale',   group:'Comercial' },
   'process-room': { label:'Sala de Proceso',    icon:'package',    group:'Producción' },
   vid:          { label:'Vid',                  icon:'leaf',       group:'Producción' },
+  sombreadero:  { label:'Sombreadero',          icon:'sun',        group:'Producción' },
   parrones:     { label:'Parrones',             icon:'sprout',     group:'Producción' },
+  riego:        { label:'Riego',                icon:'refresh',    group:'Producción' },
   materials:    { label:'Análisis de materiales', icon:'materials', group:'Producción' },
   logistics:    { label:'Logística',            icon:'truck',      group:'Operación' },
   activities:   { label:'Actividades',         icon:'clipboard',   group:'Producción' },
