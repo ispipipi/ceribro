@@ -195,6 +195,19 @@ const ANALISIS_LOTE = [
   { lote:'L-2025-011', tipo:'Humedad / viabilidad', fecha:'2026-05-24', resultado:'Viabilidad 93%', estado:'OK' },
 ];
 
+const BREEDER_INFORME = [
+  { breeder:'Sun World', variedades:'Autumn Crisp, Sugra 54', injertando:48600, plantando:31200, stock:72400, patente:'Informe pendiente' },
+  { breeder:'SNFL', variedades:'Timpson, Ruby Rush', injertando:35400, plantando:18800, stock:42600, patente:'En revisión' },
+  { breeder:'IFG', variedades:'Sweet Globe, Sweet Celebration', injertando:29400, plantando:24100, stock:38900, patente:'Listo para enviar' },
+  { breeder:'Itum', variedades:'Itum 16', injertando:8200, plantando:5200, stock:11900, patente:'Listo para enviar' },
+];
+
+const BREEDER_PLANTILLAS = [
+  { nombre:'Plantilla informe mensual patentes', formato:'XLSX', contenido:'Stock por breeder, variedad y etapa productiva' },
+  { nombre:'Plantilla injertación y plantación', formato:'XLSX', contenido:'Detalle de lo injertado, plantado y disponible' },
+  { nombre:'Plantilla resumen ejecutivo', formato:'PDF', contenido:'Resumen para envío mensual a gerencia y patentes' },
+];
+
 function DailyLaborCard({ title, rows }) {
   const toast = useToast();
   return (
@@ -402,6 +415,7 @@ function ModuleContratos() {
         <button className={"tab " + (tab==='activos'?'active':'')} onClick={() => setTab('activos')}>Contratos activos · {CONTRATOS_ER.length}</button>
         <button className={"tab " + (tab==='cotizaciones'?'active':'')} onClick={() => setTab('cotizaciones')}>Cotizaciones · {cotizaciones.length}</button>
         <button className={"tab " + (tab==='cerrados'?'active':'')} onClick={() => setTab('cerrados')}>Cerrados</button>
+        <button className={"tab " + (tab==='breeder'?'active':'')} onClick={() => setTab('breeder')}>Informe breeder</button>
       </div>
       {tab==='activos' && (
         <div className="card">
@@ -477,6 +491,28 @@ function ModuleContratos() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+      {tab==='breeder' && (
+        <div className="grid grid-2">
+          <div className="card">
+            <div className="card-header"><div><h3 className="card-title">Informe mensual por breeder</h3><p className="card-sub">Injertado, plantado y stock disponible para reporte a patentes.</p></div></div>
+            <div className="table-wrap">
+              <table className="tbl">
+                <thead><tr><th>Breeder</th><th>Variedades</th><th className="num">Injertando</th><th className="num">Plantando</th><th className="num">Stock disponible</th><th>Estado patente</th></tr></thead>
+                <tbody>{BREEDER_INFORME.map(b => <tr key={b.breeder}><td className="strong">{b.breeder}</td><td>{b.variedades}</td><td className="num">{fmtNum(b.injertando)}</td><td className="num">{fmtNum(b.plantando)}</td><td className="num">{fmtNum(b.stock)}</td><td><span className={"chip " + (b.patente==='Listo para enviar'?'chip-success':b.patente==='En revisión'?'chip-info':'chip-warn')}>{b.patente}</span></td></tr>)}</tbody>
+              </table>
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-header"><div><h3 className="card-title">Plantillas de reporte</h3><p className="card-sub">Formatos demo para el informe mensual.</p></div></div>
+            <div className="table-wrap">
+              <table className="tbl">
+                <thead><tr><th>Plantilla</th><th>Formato</th><th>Contenido</th><th></th></tr></thead>
+                <tbody>{BREEDER_PLANTILLAS.map(p => <tr key={p.nombre}><td className="strong">{p.nombre}</td><td><span className="chip chip-info">{p.formato}</span></td><td className="text-muted">{p.contenido}</td><td><button className="btn btn-secondary btn-sm" onClick={() => toast.success('Plantilla descargada', p.nombre)}><Icon name="download" size={13}/> Descargar</button></td></tr>)}</tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -810,22 +846,33 @@ function ModuleParrones() {
 function ModuleLogistica() {
   const pendientes = ORDENES_COMPRA.reduce((a,b)=>a+b.pendiente,0);
   const recibidas = ORDENES_COMPRA.filter(o=>o.estado==='Recibida').length;
+  const stockCritico = MATERIALES.filter(m => m.stock < m.minimo);
   const toast = useToast();
   return (
     <div>
       <div className="page-head">
-        <div><h1 className="page-title">Logística</h1><p className="page-sub">Órdenes de compra, recepciones, compras archivadas y productos alternativos.</p></div>
+        <div><h1 className="page-title">Logística</h1><p className="page-sub">Órdenes de compra, stock disponible, alertas de bajo stock y productos alternativos.</p></div>
         <button className="btn btn-secondary" onClick={() => toast.success('Vista exportada', 'Resumen de logística generado')}><Icon name="download" size={14}/> Exportar</button>
       </div>
       <div className="grid grid-4 mb-20">
         <div className="kpi"><div className="kpi-accent"></div><div className="kpi-label">Órdenes activas</div><div className="kpi-value">{ORDENES_COMPRA.length}</div></div>
         <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Unidades pendientes</div><div className="kpi-value">{fmtNum(pendientes)}</div></div>
         <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">OC recibidas</div><div className="kpi-value">{recibidas}</div></div>
-        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Alternativos disponibles</div><div className="kpi-value">{PRODUCTOS_ALTERNATIVOS.length}</div></div>
+        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Alertas bajo stock</div><div className="kpi-value" style={{color:stockCritico.length?'var(--danger)':'inherit'}}>{stockCritico.length}</div></div>
       </div>
       <div className="card mb-20">
         <div className="card-header"><div><h3 className="card-title">Órdenes de compra</h3><p className="card-sub">Recibido versus pendiente de llegada.</p></div></div>
         <div className="table-wrap"><table className="tbl"><thead><tr><th>OC</th><th>Proveedor</th><th>Material</th><th className="num">Solicitado</th><th className="num">Recibido</th><th className="num">Pendiente</th><th>Llegada</th><th>Estado</th></tr></thead><tbody>{ORDENES_COMPRA.map(o => <tr key={o.oc}><td className="strong">{o.oc}</td><td>{o.proveedor}</td><td>{o.material}</td><td className="num">{fmtNum(o.solicitado)}</td><td className="num">{fmtNum(o.recibido)}</td><td className="num">{fmtNum(o.pendiente)}</td><td className="text-muted">{o.llegada}</td><td><span className={"chip " + (o.estado==='Recibida'?'chip-success':o.estado==='Parcial'?'chip-warn':'chip-info')}>{o.estado}</span></td></tr>)}</tbody></table></div>
+      </div>
+      <div className="grid grid-2 mb-20">
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Stock disponible para logística</h3><p className="card-sub">Materiales visibles para facilitar compras y reposición.</p></div></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>SKU</th><th>Material</th><th className="num">Stock</th><th className="num">Mínimo</th><th>Estado compra</th></tr></thead><tbody>{MATERIALES.slice(0,6).map(m => { const bajo = m.stock < m.minimo; return <tr key={m.sku}><td className="strong">{m.sku}</td><td>{m.nombre}</td><td className="num">{fmtNum(m.stock)} {m.unidad}</td><td className="num text-muted">{fmtNum(m.minimo)} {m.unidad}</td><td><span className={"chip " + (bajo?'chip-danger':'chip-success')}>{bajo?'Reponer':'Disponible'}</span></td></tr>; })}</tbody></table></div>
+        </div>
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Alertas de bajo stock</h3><p className="card-sub">Insumos que requieren gestión de compra.</p></div></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Material</th><th>Categoría</th><th className="num">Déficit</th><th>Acción</th></tr></thead><tbody>{stockCritico.map(m => <tr key={m.sku}><td className="strong">{m.nombre}</td><td>{m.categoria}</td><td className="num">{fmtNum(m.minimo-m.stock)} {m.unidad}</td><td><button className="btn btn-sun btn-sm" onClick={() => toast.warn('Compra sugerida', `${m.nombre} bajo mínimo`)}><Icon name="alert" size={13}/> Generar alerta</button></td></tr>)}</tbody></table></div>
+        </div>
       </div>
       <div className="grid grid-2 mb-20">
         <div className="card">
@@ -879,7 +926,7 @@ function ModuleMateriales() {
   const stockOuts = activityRows.filter(a => a.impacto === 'stock_out').length;
   const alarmas = activityRows.filter(a => a.alarma).length;
   const vencen6Meses = MATERIAL_VENCIMIENTOS.length;
-  const fichas = MATERIALES.slice(0,4).map((m,i) => ({...m, ficha:i%2===0?'Adjunta':'Pendiente'}));
+  const fichas = MATERIALES.slice(0,4).map((m,i) => ({...m, ficha:i%2===0?'Actualizada':'Pendiente', version:i%2===0?'v2026.05':'Sin versión', fecha:i%2===0?'2026-05-20':'—'}));
   return (
     <div>
       <div className="page-head">
@@ -951,14 +998,14 @@ function ModuleMateriales() {
         </div>
       </div>
       <div className="card mb-20">
-        <div className="card-header"><div><h3 className="card-title">Fichas técnicas de productos</h3><p className="card-sub">Demo de adjuntos para productos de almacén.</p></div></div>
+        <div className="card-header"><div><h3 className="card-title">Fichas técnicas actualizadas</h3><p className="card-sub">Control de versión y adjuntos para productos de almacén.</p></div></div>
         <div className="table-wrap">
           <table className="tbl">
-            <thead><tr><th>SKU</th><th>Producto</th><th>Categoría</th><th>Ficha técnica</th><th></th></tr></thead>
+            <thead><tr><th>SKU</th><th>Producto</th><th>Categoría</th><th>Ficha técnica</th><th>Versión</th><th>Actualización</th><th></th></tr></thead>
             <tbody>
               {fichas.map(f => (
                 <tr key={f.sku}>
-                  <td className="strong">{f.sku}</td><td>{f.nombre}</td><td><span className="chip">{f.categoria}</span></td><td><span className={"chip " + (f.ficha==='Adjunta'?'chip-success':'chip-warn')}>{f.ficha}</span></td>
+                  <td className="strong">{f.sku}</td><td>{f.nombre}</td><td><span className="chip">{f.categoria}</span></td><td><span className={"chip " + (f.ficha==='Actualizada'?'chip-success':'chip-warn')}>{f.ficha}</span></td><td>{f.version}</td><td className="text-muted">{f.fecha}</td>
                   <td className="row gap-8"><button className="btn btn-secondary btn-sm" onClick={() => toast.success('Ficha adjuntada', `${f.nombre} actualizada`)}><Icon name="plus" size={13}/> Adjuntar ficha técnica</button><button className="btn btn-ghost btn-sm" onClick={() => toast.info('Vista de ficha', `Ficha técnica de ${f.nombre}`)}><Icon name="eye" size={13}/> Ver ficha</button></td>
                 </tr>
               ))}
