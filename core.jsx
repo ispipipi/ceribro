@@ -101,6 +101,8 @@ const Icon = ({ name, size = 18, stroke = 1.8, className }) => {
     case "edit": return (<svg {...props}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>);
     case "trash": return (<svg {...props}><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>);
     case "eye": return (<svg {...props}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>);
+    case "clock": return (<svg {...props}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>);
+    case "mail": return (<svg {...props}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>);
     case "calendar-check": return (<svg {...props}><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/></svg>);
     case "map-pin": return (<svg {...props}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>);
     case "camera": return (<svg {...props}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>);
@@ -253,7 +255,7 @@ const PROFILES = {
     iconClass:'',
     badges:['Todo el sistema','Gerencia 2026'],
     avatar:'GE', email:'gerencia@viveroseltambo.cl',
-    modules:['dashboard','contracts','process-room','vid','sombreadero','parrones','riego','materials','logistics','activities','calendar','lots','quality','money','client','postsale','masters','directory'],
+    modules:['dashboard','contracts','process-room','vid','sombreadero','parrones','riego','materials','logistics','activities','calendar','lots','quality','money','client','postsale','hr','masters','directory'],
   },
   directorio: {
     id:'directorio',
@@ -295,6 +297,16 @@ const PROFILES = {
     avatar:'PR', email:'produccion@viveroseltambo.cl',
     modules:['dashboard','process-room','vid','sombreadero','parrones','riego','materials','activities','calendar','lots','quality'],
   },
+  rrhh: {
+    id:'rrhh',
+    nombre:'RRHH',
+    desc:'Asistencia en terreno, vacaciones, descansos médicos, permisos, costos laborales y reportería.',
+    icon:'users',
+    iconClass:'olive',
+    badges:['Asistencia','Vacaciones','Reportes'],
+    avatar:'RH', email:'rrhh@viveroseltambo.cl',
+    modules:['hr'],
+  },
   campo: {
     id:'campo',
     nombre:'Campo móvil',
@@ -325,6 +337,7 @@ const MODULES = {
   lots:         { label:'Lotes',               icon:'lots',        group:'Producción' },
   quality:      { label:'Liberación de calidad', icon:'quality',  group:'Producción' },
   money:        { label:'Costos y presupuesto', icon:'money',     group:'Comercial' },
+  hr:           { label:'Recursos Humanos',     icon:'users',     group:'Sistema' },
   masters:      { label:'Maestros',            icon:'masters',    group:'Sistema' },
   directory:    { label:'Estado de Resultados',icon:'directory',  group:'Directorio' },
   alerts:       { label:'Alertas',             icon:'bell',       group:'Directorio' },

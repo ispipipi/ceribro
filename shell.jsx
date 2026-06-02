@@ -1,7 +1,7 @@
 /* Login (selección de perfil) y AppShell (sidebar + topbar) */
 
 function Login({ onPick }) {
-  const order = ['admin','directorio','calidad','comercial','produccion','campo'];
+  const order = ['admin','directorio','calidad','comercial','produccion','rrhh','campo'];
   return (
     <div className="login">
       <div className="login-top">

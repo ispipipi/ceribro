@@ -208,6 +208,64 @@ const BREEDER_PLANTILLAS = [
   { nombre:'Plantilla resumen ejecutivo', formato:'PDF', contenido:'Resumen para envío mensual a gerencia y patentes' },
 ];
 
+const HR_WORKERS = [
+  { id:'T-001', nombre:'María Torres', genero:'Femenino', edad:34, area:'Sombreadero', sede:'Cura Mori', rol:'Operaria agrícola', cargo:'Jornal', supervisor:'C. Vega', activo:true, asignacion:true, vacaciones:28, vencidas:8, costoDia:42000, tipo:'Operativo', turno:'Día' },
+  { id:'T-002', nombre:'Luis Rojas', genero:'Masculino', edad:41, area:'Parrones', sede:'Cura Mori', rol:'Podador', cargo:'Jornal', supervisor:'M. Arias', activo:true, asignacion:false, vacaciones:14, vencidas:0, costoDia:45500, tipo:'Operativo', turno:'Día' },
+  { id:'T-003', nombre:'Ana Salazar', genero:'Femenino', edad:29, area:'Sala de Proceso', sede:'Catacaos', rol:'Injertadora', cargo:'Jornal', supervisor:'R. Peña', activo:true, asignacion:true, vacaciones:22, vencidas:4, costoDia:43800, tipo:'Operativo', turno:'Día' },
+  { id:'T-004', nombre:'Pedro Linares', genero:'Masculino', edad:52, area:'Riego', sede:'Cura Mori', rol:'Operador riego', cargo:'Técnico', supervisor:'J. Nima', activo:true, asignacion:false, vacaciones:31, vencidas:12, costoDia:52000, tipo:'Operativo', turno:'Noche' },
+  { id:'T-005', nombre:'Carmen Ruiz', genero:'Femenino', edad:37, area:'Calidad', sede:'Catacaos', rol:'Inspectora calidad', cargo:'Técnico', supervisor:'K. Solier', activo:true, asignacion:true, vacaciones:9, vencidas:0, costoDia:58000, tipo:'Administrativo', turno:'Día' },
+  { id:'T-006', nombre:'Jorge Panta', genero:'Masculino', edad:46, area:'Logística', sede:'Piura', rol:'Encargado despacho', cargo:'Administrativo', supervisor:'K. Solier', activo:true, asignacion:false, vacaciones:18, vencidas:0, costoDia:61000, tipo:'Administrativo', turno:'Día' },
+  { id:'T-007', nombre:'Rosa Mena', genero:'Femenino', edad:24, area:'Sombreadero', sede:'Cura Mori', rol:'Riego manual', cargo:'Jornal', supervisor:'C. Vega', activo:true, asignacion:false, vacaciones:6, vencidas:0, costoDia:41000, tipo:'Operativo', turno:'Día' },
+  { id:'T-008', nombre:'Elmer Díaz', genero:'Masculino', edad:33, area:'Parrones', sede:'San Lorenzo', rol:'Raleo', cargo:'Jornal', supervisor:'M. Arias', activo:true, asignacion:true, vacaciones:26, vencidas:7, costoDia:43000, tipo:'Operativo', turno:'Día' },
+  { id:'T-009', nombre:'Lucía Campos', genero:'Femenino', edad:39, area:'RRHH', sede:'Piura', rol:'Analista RRHH', cargo:'Administrativo', supervisor:'K. Solier', activo:true, asignacion:true, vacaciones:12, vencidas:0, costoDia:68000, tipo:'Administrativo', turno:'Día' },
+  { id:'T-010', nombre:'Hugo Flores', genero:'Masculino', edad:27, area:'Sala de Proceso', sede:'Catacaos', rol:'Ayudante barbada', cargo:'Jornal', supervisor:'R. Peña', activo:false, asignacion:false, vacaciones:0, vencidas:0, costoDia:40500, tipo:'Operativo', turno:'Día' },
+];
+
+const HR_ATTENDANCE = [
+  { fecha:'2026-06-01', worker:'T-001', actividad:'Aplicación foliar', labor:'Preparación de camas', area:'Sombreadero', sede:'Cura Mori', entrada:'07:00', salida:'16:30', estado:'Presente', hh:8.5, extras:0.5, avance:920, unidad:'plantas', rol:'Operaria', supervisor:'C. Vega' },
+  { fecha:'2026-06-01', worker:'T-002', actividad:'Poda', labor:'Poda patrón Freedom', area:'Parrones', sede:'Cura Mori', entrada:'07:05', salida:'16:00', estado:'Tardanza', hh:8, extras:0, avance:640, unidad:'plantas', rol:'Podador', supervisor:'M. Arias' },
+  { fecha:'2026-06-01', worker:'T-003', actividad:'Injertación', labor:'Injerto bolsa', area:'Sala de Proceso', sede:'Catacaos', entrada:'07:00', salida:'17:00', estado:'Presente', hh:9, extras:1, avance:1180, unidad:'injertos', rol:'Injertadora', supervisor:'R. Peña' },
+  { fecha:'2026-06-01', worker:'T-004', actividad:'Riego', labor:'Turno noche', area:'Riego', sede:'Cura Mori', entrada:'18:00', salida:'23:00', estado:'Presente', hh:5, extras:0, avance:4, unidad:'sectores', rol:'Operador', supervisor:'J. Nima' },
+  { fecha:'2026-06-01', worker:'T-005', actividad:'Calidad', labor:'Liberación lote', area:'Calidad', sede:'Catacaos', entrada:'07:00', salida:'16:00', estado:'Presente', hh:8, extras:0, avance:3, unidad:'lotes', rol:'Inspectora', supervisor:'K. Solier' },
+  { fecha:'2026-06-02', worker:'T-001', actividad:'Sombreadero', labor:'Riego manual', area:'Sombreadero', sede:'Cura Mori', entrada:'07:00', salida:'16:00', estado:'Presente', hh:8, extras:0, avance:860, unidad:'plantas', rol:'Operaria', supervisor:'C. Vega' },
+  { fecha:'2026-06-02', worker:'T-008', actividad:'Raleo', labor:'Raleo parrones', area:'Parrones', sede:'San Lorenzo', entrada:'07:20', salida:'16:00', estado:'Tardanza', hh:7.5, extras:0, avance:540, unidad:'plantas', rol:'Raleador', supervisor:'M. Arias' },
+  { fecha:'2026-06-02', worker:'T-006', actividad:'Despacho', labor:'Programación envíos', area:'Logística', sede:'Piura', entrada:'07:00', salida:'16:00', estado:'Presente', hh:8, extras:0, avance:2, unidad:'guías', rol:'Encargado', supervisor:'K. Solier' },
+  { fecha:'2026-06-02', worker:'T-007', actividad:'Sombreadero', labor:'Aplicación preventiva', area:'Sombreadero', sede:'Cura Mori', entrada:'', salida:'', estado:'Falta', hh:0, extras:0, avance:0, unidad:'plantas', rol:'Operaria', supervisor:'C. Vega' },
+];
+
+const HR_ABSENCES = [
+  { trabajador:'Rosa Mena', tipo:'Inasistencia', motivo:'Sin aviso', fecha:'2026-06-02', dias:1, estado:'Por justificar' },
+  { trabajador:'Pedro Linares', tipo:'Descanso médico', motivo:'Lumbalgia', fecha:'2026-05-27', dias:3, estado:'Validado' },
+  { trabajador:'María Torres', tipo:'Permiso breve', motivo:'Trámite personal', fecha:'2026-05-22', dias:0.25, estado:'Aprobado' },
+  { trabajador:'Ana Salazar', tipo:'Licencia maternidad', motivo:'Control prenatal', fecha:'2026-05-19', dias:1, estado:'Registrado' },
+];
+
+const HR_PERMISSION_RULES = [
+  'Solicitar con anticipación mínima de 1 día al jefe inmediato y RRHH.',
+  'Presentar solicitud escrita por correo o boleta de permiso.',
+  '1 día libre por cumpleaños, usable dentro del mismo mes.',
+  '2 medios días al año para trámites, chequeos médicos o eventos familiares/escolares.',
+  'Hasta 2 permisos breves al año, máximo 2 horas cada uno.',
+  'Permisos adicionales requieren sustento y evaluación de Gerencia General.',
+  'Si existen vacaciones vencidas, no se puede hacer uso de permisos ordinarios.',
+  'Emergencias médicas o familiares pueden justificarse posteriormente.',
+];
+
+const HR_MEDICAL_RULES = [
+  { regla:'Recepción', detalle:'Registrar fecha de inicio, días otorgados, diagnóstico general y documento sustentatorio.' },
+  { regla:'Validación', detalle:'RRHH valida sustento, coherencia de fechas y comunicación al jefe inmediato.' },
+  { regla:'Continuidad', detalle:'Si el descanso se extiende, se debe actualizar el caso antes del retorno programado.' },
+  { regla:'Retorno', detalle:'Al reincorporarse, registrar alta o constancia y estado apto para labor.' },
+  { regla:'Impacto asistencia', detalle:'Los días se descuentan del cálculo operativo de asistencia, pero se reportan como ausencia justificada.' },
+];
+
+const HR_REPORTS = [
+  'Costo total diario de planilla', 'Costo por área', 'Costo por actividad', 'Costo por labor', 'Costo por fundo o sede',
+  'Horas hombre acumuladas', 'Comparativo histórico diario, semanal y mensual', 'Cantidad de trabajadores por área y día',
+  'Horas extras generadas', 'Distribución de personal por turno', 'Proyectado vs ejecutado', 'Desviación presupuestal',
+  'Ranking Top 10 de productividad', 'Registro de inasistencias', 'Tardanzas y descansos médicos',
+];
+
 function DailyLaborCard({ title, rows }) {
   const toast = useToast();
   return (
@@ -1400,6 +1458,203 @@ function ModuleMaestros() {
   );
 }
 
+// ───────── Recursos Humanos ─────────
+function ModuleRRHH() {
+  const toast = useToast();
+  const [tab, setTab] = React.useState('ejecutivo');
+  const [capture, setCapture] = React.useState({ fecha:'2026-06-02', sede:'Cura Mori', area:'Sombreadero', labor:'Riego manual', supervisor:'C. Vega' });
+  const [captureRows, setCaptureRows] = React.useState(HR_WORKERS.filter(w=>w.activo).slice(0,6).map(w => ({ id:w.id, estado:'Presente', entrada:'07:00', salida:'16:00', rol:w.rol, avance:0 })));
+  const [report, setReport] = React.useState({ nombre:'', foco:'Costo', fecha:'Diario', filtro:'Área' });
+
+  const activos = HR_WORKERS.filter(w=>w.activo);
+  const withWorker = HR_ATTENDANCE.map(a => ({...a, workerData: HR_WORKERS.find(w=>w.id===a.worker)}));
+  const totalHH = withWorker.reduce((a,b)=>a+b.hh,0);
+  const totalExtras = withWorker.reduce((a,b)=>a+b.extras,0);
+  const costoTotal = withWorker.reduce((a,b)=>a + ((b.workerData?.costoDia || 0) * (b.hh / 8)) + ((b.workerData?.costoDia || 0) / 8 * 1.25 * b.extras), 0);
+  const presentes = withWorker.filter(a=>a.estado==='Presente').length;
+  const faltas = withWorker.filter(a=>a.estado==='Falta').length;
+  const ausentismo = (faltas + HR_ABSENCES.filter(a=>a.tipo!=='Permiso breve').length) / Math.max(withWorker.length + HR_ABSENCES.length, 1) * 100;
+  const rotacion = HR_WORKERS.filter(w=>!w.activo).length / HR_WORKERS.length * 100;
+  const operativos = activos.filter(w=>w.tipo==='Operativo').length;
+  const administrativos = activos.filter(w=>w.tipo==='Administrativo').length;
+  const rendimiento = withWorker.filter(a=>a.hh>0).reduce((a,b)=>a+b.avance,0) / Math.max(withWorker.filter(a=>a.hh>0).length,1);
+
+  const groupCount = (rows, key) => Object.values(rows.reduce((acc, r) => {
+    const k = typeof key === 'function' ? key(r) : r[key];
+    if (!acc[k]) acc[k] = { label:k, value:0 };
+    acc[k].value += 1;
+    return acc;
+  }, {})).sort((a,b)=>b.value-a.value);
+  const groupSum = (rows, key, val) => Object.values(rows.reduce((acc, r) => {
+    const k = typeof key === 'function' ? key(r) : r[key];
+    if (!acc[k]) acc[k] = { label:k, value:0 };
+    acc[k].value += typeof val === 'function' ? val(r) : Number(r[val] || 0);
+    return acc;
+  }, {})).sort((a,b)=>b.value-a.value);
+  const asistenciaPorArea = groupSum(withWorker, 'area', r => r.estado==='Falta' ? 0 : 1).map(r => ({...r, total: withWorker.filter(a=>a.area===r.label).length}));
+  const costoPorArea = groupSum(withWorker, 'area', r => ((r.workerData?.costoDia || 0) * (r.hh / 8)));
+  const costoPorActividad = groupSum(withWorker, 'actividad', r => ((r.workerData?.costoDia || 0) * (r.hh / 8)));
+  const costoPorLabor = groupSum(withWorker, 'labor', r => ((r.workerData?.costoDia || 0) * (r.hh / 8)));
+  const productividad = withWorker.filter(a=>a.hh>0).map(a => ({...a, trabajador:a.workerData?.nombre || a.worker, ratio:a.avance / a.hh})).sort((a,b)=>b.ratio-a.ratio);
+  const vacacionesCriticas = activos.filter(w=>w.vacaciones>=20 || w.vencidas>0).sort((a,b)=>b.vacaciones-a.vacaciones);
+
+  const updateCapture = (id, patch) => setCaptureRows(rows => rows.map(r => r.id===id ? {...r, ...patch} : r));
+  const saveAttendance = () => toast.success('Asistencia capturada', `${capture.area} · ${capture.labor} · ${captureRows.length} registros`);
+  const sendVacationMail = (w) => toast.info('Correo preparado', `${w.nombre}: sugerir programación de ${w.vacaciones} días acumulados`);
+  const createReport = () => {
+    toast.success('Reporte creado', report.nombre || `${report.foco} · ${report.fecha} por ${report.filtro}`);
+    setReport({...report, nombre:''});
+  };
+
+  const BarList = ({ rows, money=false, pct=false }) => {
+    const max = Math.max(...rows.map(r=>r.value), 1);
+    return (
+      <div style={{display:'flex', flexDirection:'column', gap:10}}>
+        {rows.map(r => <div key={r.label}>
+          <div className="row between" style={{fontSize:12.5, marginBottom:5}}><span className="strong">{r.label}</span><span>{money ? fmtCLP(r.value) : pct ? fmtPct(r.value,0) : fmtNum(r.value)}</span></div>
+          <div className="bar-track" style={{height:7}}><div className="bar-fill" style={{width:(r.value/max*100)+'%', background:'var(--vet-leaf)'}}></div></div>
+        </div>)}
+      </div>
+    );
+  };
+
+  const Kpi = ({ label, value, sub, icon, accent='' }) => (
+    <div className="kpi"><div className={"kpi-accent " + accent}></div><div className="row between"><div className="kpi-label">{label}</div><Icon name={icon} size={15} className="text-muted"/></div><div className="kpi-value">{value}</div>{sub && <div className="kpi-foot">{sub}</div>}</div>
+  );
+
+  return (
+    <div>
+      <div className="page-head">
+        <div>
+          <h1 className="page-title">Recursos Humanos</h1>
+          <p className="page-sub">Asistencia, vacaciones, descansos médicos, permisos, costos laborales y reportería.</p>
+        </div>
+        <div className="actions">
+          <button className="btn btn-secondary" onClick={() => toast.success('Reporte exportado', 'Excel/PDF generado en demo')}><Icon name="download" size={14}/> Exportar</button>
+        </div>
+      </div>
+
+      <div className="tabs">
+        {[
+          ['ejecutivo','Dashboard ejecutivo'],
+          ['asistencia','Asistencia terreno'],
+          ['vacaciones','Vacaciones'],
+          ['medico','Descanso médico'],
+          ['permisos','Permisos'],
+          ['reporteria','Reportería'],
+        ].map(([id,label]) => <button key={id} className={"tab " + (tab===id?'active':'')} onClick={() => setTab(id)}>{label}</button>)}
+      </div>
+
+      {tab==='ejecutivo' && (
+        <div>
+          <div className="grid grid-4 mb-20">
+            <Kpi label="Trabajadores activos" value={activos.length} sub={`${operativos} operativos · ${administrativos} adm.`} icon="users" />
+            <Kpi label="Índice ausentismo" value={fmtPct(ausentismo,1)} sub={`${faltas} faltas operativas`} icon="alert" accent="sun" />
+            <Kpi label="Horas hombre" value={fmtNum(totalHH,1)} sub={`${fmtNum(totalExtras,1)} horas extra`} icon="clock" accent="olive" />
+            <Kpi label="Costo mano de obra" value={fmtCLP(costoTotal)} sub="Diario demo" icon="money" accent="earth" />
+          </div>
+          <div className="grid grid-3 mb-20">
+            <Kpi label="Asignación familiar" value={activos.filter(w=>w.asignacion).length} sub={`${activos.filter(w=>!w.asignacion).length} sin asignación`} icon="check-circle" />
+            <Kpi label="Rotación" value={fmtPct(rotacion,1)} sub="Personal inactivo / total" icon="refresh" accent="sun" />
+            <Kpi label="Rendimiento promedio" value={fmtNum(rendimiento,0)} sub="Unidades por registro" icon="trending-up" accent="olive" />
+          </div>
+          <div className="grid grid-2 mb-20">
+            <div className="card"><div className="card-header"><div><h3 className="card-title">Trabajadores por área</h3><p className="card-sub">Distribución actual de dotación activa.</p></div></div><div className="card-body"><BarList rows={groupCount(activos, 'area')} /></div></div>
+            <div className="card"><div className="card-header"><div><h3 className="card-title">Costo por área</h3><p className="card-sub">Costo diario ejecutado según asistencia.</p></div></div><div className="card-body"><BarList rows={costoPorArea} money /></div></div>
+          </div>
+          <div className="grid grid-2 mb-20">
+            <div className="card">
+              <div className="card-header"><div><h3 className="card-title">Heatmap de asistencia</h3><p className="card-sub">Presencia por área en registros demo.</p></div></div>
+              <div className="card-body" style={{display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))', gap:10}}>
+                {asistenciaPorArea.map(a => { const pct = a.total ? a.value/a.total*100 : 0; return <div key={a.label} style={{padding:12, border:'1px solid var(--line)', borderRadius:8, background:pct>80?'#eef7ed':pct>60?'#fff8e5':'#fff0ed'}}><div className="strong">{a.label}</div><div style={{fontSize:24, fontWeight:700, marginTop:6}}>{fmtPct(pct,0)}</div><div className="text-muted" style={{fontSize:12}}>{fmtNum(a.value)} de {fmtNum(a.total)} registros</div></div>; })}
+              </div>
+            </div>
+            <div className="card">
+              <div className="card-header"><div><h3 className="card-title">Rankings dinámicos</h3><p className="card-sub">Mayor y menor rendimiento por colaborador.</p></div></div>
+              <div className="table-wrap"><table className="tbl"><thead><tr><th>Trabajador</th><th>Labor</th><th className="num">Rendimiento</th><th>Semáforo</th></tr></thead><tbody>{[...productividad.slice(0,4), ...productividad.slice(-2)].map(p => <tr key={p.worker+p.labor}><td className="strong">{p.trabajador}</td><td>{p.labor}</td><td className="num">{fmtNum(p.ratio,1)} / hh</td><td><span className={"chip " + (p.ratio>100?'chip-success':p.ratio>60?'chip-warn':'chip-danger')}>{p.ratio>100?'Alto':p.ratio>60?'Medio':'Bajo'}</span></td></tr>)}</tbody></table></div>
+            </div>
+          </div>
+          <div className="grid grid-2">
+            <div className="card"><div className="card-header"><div><h3 className="card-title">Dashboard Mano de Obra</h3><p className="card-sub">Actividad, labor, turnos y eficiencia operativa.</p></div></div><div className="card-body"><BarList rows={groupSum(withWorker, 'actividad', 'hh')} /><div className="row gap-8 mt-12"><span className="chip chip-info">Costo HH {fmtCLP(costoTotal/Math.max(totalHH,1))}</span><span className="chip chip-leaf">Turno día {activos.filter(w=>w.turno==='Día').length}</span><span className="chip chip-warn">Turno noche {activos.filter(w=>w.turno==='Noche').length}</span></div></div></div>
+            <div className="card"><div className="card-header"><div><h3 className="card-title">Dashboard Costos Laborales</h3><p className="card-sub">Actividad, labor, área y desviación presupuestal.</p></div></div><div className="card-body"><BarList rows={costoPorActividad.slice(0,5)} money /><div className="row gap-8 mt-12"><span className="chip chip-success">Semanal {fmtCLP(costoTotal*5)}</span><span className="chip chip-info">Mensual {fmtCLP(costoTotal*22)}</span><span className="chip chip-warn">Desviación +4,8%</span></div></div></div>
+          </div>
+        </div>
+      )}
+
+      {tab==='asistencia' && (
+        <div>
+          <div className="card mb-20">
+            <div className="card-header"><div><h3 className="card-title">Captura simple de asistencia en terreno</h3><p className="card-sub">Basado en la planilla obligatoria: fecha, fundo/sede, labor, rol, entrada, salida y estado.</p></div><button className="btn btn-primary" onClick={saveAttendance}><Icon name="save" size={14}/> Guardar asistencia</button></div>
+            <div className="filterbar">
+              <div className="field"><label className="label">Fecha</label><input className="input" type="date" value={capture.fecha} onChange={e=>setCapture({...capture, fecha:e.target.value})}/></div>
+              <div className="field"><label className="label">Fundo / sede</label><select className="select" value={capture.sede} onChange={e=>setCapture({...capture, sede:e.target.value})}>{[...new Set(HR_WORKERS.map(w=>w.sede))].map(s => <option key={s}>{s}</option>)}</select></div>
+              <div className="field"><label className="label">Área</label><select className="select" value={capture.area} onChange={e=>setCapture({...capture, area:e.target.value})}>{[...new Set(HR_WORKERS.map(w=>w.area))].map(a => <option key={a}>{a}</option>)}</select></div>
+              <div className="field"><label className="label">Labor</label><input className="input" value={capture.labor} onChange={e=>setCapture({...capture, labor:e.target.value})}/></div>
+            </div>
+            <div className="table-wrap">
+              <table className="tbl">
+                <thead><tr><th>Trabajador</th><th>Rol</th><th>Estado</th><th>Entrada</th><th>Salida</th><th className="num">Avance</th></tr></thead>
+                <tbody>{captureRows.map(r => { const w = HR_WORKERS.find(x=>x.id===r.id); return <tr key={r.id}><td><div className="strong">{w.nombre}</div><div className="text-muted" style={{fontSize:12}}>{w.area} · {w.sede}</div></td><td><input className="input" value={r.rol} onChange={e=>updateCapture(r.id,{rol:e.target.value})}/></td><td><select className="select" value={r.estado} onChange={e=>updateCapture(r.id,{estado:e.target.value})}><option>Presente</option><option>Tardanza</option><option>Falta</option><option>Permiso</option><option>Descanso médico</option></select></td><td><input className="input" type="time" value={r.entrada} onChange={e=>updateCapture(r.id,{entrada:e.target.value})}/></td><td><input className="input" type="time" value={r.salida} onChange={e=>updateCapture(r.id,{salida:e.target.value})}/></td><td className="num"><input className="input" type="number" value={r.avance} onChange={e=>updateCapture(r.id,{avance:e.target.value})}/></td></tr>; })}</tbody>
+              </table>
+            </div>
+          </div>
+          <div className="grid grid-2">
+            <div className="card"><div className="card-header"><div><h3 className="card-title">Registro de asistencia y ausentismo</h3><p className="card-sub">Inasistencias, tardanzas, descansos médicos y licencias.</p></div></div><div className="table-wrap"><table className="tbl"><thead><tr><th>Trabajador</th><th>Tipo</th><th>Motivo</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>{HR_ABSENCES.map(a => <tr key={a.trabajador+a.fecha}><td className="strong">{a.trabajador}</td><td>{a.tipo}</td><td>{a.motivo}</td><td className="text-muted">{a.fecha}</td><td><span className={"chip " + (a.estado==='Validado'||a.estado==='Aprobado'?'chip-success':a.estado==='Por justificar'?'chip-danger':'chip-info')}>{a.estado}</span></td></tr>)}</tbody></table></div></div>
+            <div className="card"><div className="card-header"><div><h3 className="card-title">Comparativo histórico</h3><p className="card-sub">Diario, semanal y mensual demo.</p></div></div><div className="card-body"><BarList rows={[{label:'Diario', value:totalHH},{label:'Semanal', value:totalHH*5},{label:'Mensual', value:totalHH*22}]} /></div></div>
+          </div>
+        </div>
+      )}
+
+      {tab==='vacaciones' && (
+        <div className="grid grid-2">
+          <div className="card">
+            <div className="card-header"><div><h3 className="card-title">BBDD personal y vacaciones</h3><p className="card-sub">Saldos acumulados, vencidos y alertas de programación.</p></div></div>
+            <div className="table-wrap"><table className="tbl"><thead><tr><th>Trabajador</th><th>Área</th><th className="num">Días acumulados</th><th className="num">Vencidos</th><th>Alerta</th><th></th></tr></thead><tbody>{activos.map(w => <tr key={w.id}><td className="strong">{w.nombre}</td><td>{w.area}</td><td className="num">{w.vacaciones}</td><td className="num">{w.vencidas}</td><td><span className={"chip " + (w.vencidas>0?'chip-danger':w.vacaciones>=20?'chip-warn':'chip-success')}>{w.vencidas>0?'Vencidas':w.vacaciones>=20?'Acumulación':'OK'}</span></td><td><button className="btn btn-secondary btn-sm" onClick={() => sendVacationMail(w)}><Icon name="mail" size={13}/> Automatizar correo</button></td></tr>)}</tbody></table></div>
+          </div>
+          <div className="card">
+            <div className="card-header"><div><h3 className="card-title">Alertas de acumulación</h3><p className="card-sub">Prioridad para programación de vacaciones.</p></div></div>
+            <div className="card-body"><BarList rows={vacacionesCriticas.map(w=>({label:w.nombre, value:w.vacaciones}))} /><div className="mt-12" style={{display:'flex', flexDirection:'column', gap:8}}>{vacacionesCriticas.map(w => <div key={w.id} className="row between" style={{padding:10, border:'1px solid var(--line)', borderRadius:8}}><span>{w.nombre}</span><button className="btn btn-ghost btn-sm" onClick={() => sendVacationMail(w)}>Enviar recordatorio</button></div>)}</div></div>
+          </div>
+        </div>
+      )}
+
+      {tab==='medico' && (
+        <div className="grid grid-2">
+          <div className="card"><div className="card-header"><div><h3 className="card-title">Reglas de negocio · descanso médico</h3><p className="card-sub">Flujo operativo para recepción, validación y retorno.</p></div></div><div className="table-wrap"><table className="tbl"><thead><tr><th>Regla</th><th>Detalle</th></tr></thead><tbody>{HR_MEDICAL_RULES.map(r => <tr key={r.regla}><td className="strong">{r.regla}</td><td>{r.detalle}</td></tr>)}</tbody></table></div></div>
+          <div className="card"><div className="card-header"><div><h3 className="card-title">Casos de descanso médico</h3><p className="card-sub">Control de días, sustento y retorno.</p></div></div><div className="table-wrap"><table className="tbl"><thead><tr><th>Trabajador</th><th>Motivo</th><th>Inicio</th><th className="num">Días</th><th>Estado</th></tr></thead><tbody>{HR_ABSENCES.filter(a=>a.tipo==='Descanso médico'||a.tipo==='Licencia maternidad').map(a => <tr key={a.trabajador+a.fecha}><td className="strong">{a.trabajador}</td><td>{a.motivo}</td><td className="text-muted">{a.fecha}</td><td className="num">{a.dias}</td><td><span className="chip chip-info">{a.estado}</span></td></tr>)}</tbody></table></div></div>
+        </div>
+      )}
+
+      {tab==='permisos' && (
+        <div className="grid grid-2">
+          <div className="card"><div className="card-header"><div><h3 className="card-title">Reglas de negocio · permisos</h3><p className="card-sub">Basado en Política de Permisos VET-P0026 y resumen de responsabilidad.</p></div></div><div className="card-body" style={{display:'flex', flexDirection:'column', gap:10}}>{HR_PERMISSION_RULES.map((r,i) => <div key={r} className="row gap-12" style={{alignItems:'flex-start', padding:12, border:'1px solid var(--line)', borderRadius:8}}><span className="chip chip-info">{i+1}</span><span>{r}</span></div>)}</div></div>
+          <div className="card"><div className="card-header"><div><h3 className="card-title">Control anual de permisos</h3><p className="card-sub">Cumple límites: cumpleaños, medios días y permisos breves.</p></div></div><div className="table-wrap"><table className="tbl"><thead><tr><th>Trabajador</th><th>Tipo</th><th>Uso</th><th>Validación</th></tr></thead><tbody>{[{n:'María Torres',t:'Permiso breve',u:'1 de 2',v:'OK'},{n:'Pedro Linares',t:'Medio día trámite',u:'2 de 2',v:'Límite alcanzado'},{n:'Ana Salazar',t:'Cumpleaños',u:'0 de 1',v:'Disponible'},{n:'María Torres',t:'Vacaciones vencidas',u:'8 días',v:'Bloquear permiso ordinario'}].map(r => <tr key={r.n+r.t}><td className="strong">{r.n}</td><td>{r.t}</td><td>{r.u}</td><td><span className={"chip " + (r.v==='OK'||r.v==='Disponible'?'chip-success':r.v.includes('Bloquear')?'chip-danger':'chip-warn')}>{r.v}</span></td></tr>)}</tbody></table></div></div>
+        </div>
+      )}
+
+      {tab==='reporteria' && (
+        <div className="grid grid-2">
+          <div className="card">
+            <div className="card-header"><div><h3 className="card-title">Crear reporte</h3><p className="card-sub">Constructor simple para Excel/PDF con filtros.</p></div><button className="btn btn-primary" onClick={createReport}><Icon name="plus" size={14}/> Crear</button></div>
+            <div className="card-body" style={{display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:12}}>
+              <div className="field"><label className="label">Nombre</label><input className="input" value={report.nombre} onChange={e=>setReport({...report, nombre:e.target.value})} placeholder="Reporte operativo"/></div>
+              <div className="field"><label className="label">Foco</label><select className="select" value={report.foco} onChange={e=>setReport({...report, foco:e.target.value})}><option>Costo</option><option>Asistencia</option><option>Productividad</option><option>Vacaciones</option></select></div>
+              <div className="field"><label className="label">Periodicidad</label><select className="select" value={report.fecha} onChange={e=>setReport({...report, fecha:e.target.value})}><option>Diario</option><option>Semanal</option><option>Mensual</option><option>Campaña</option></select></div>
+              <div className="field"><label className="label">Filtro</label><select className="select" value={report.filtro} onChange={e=>setReport({...report, filtro:e.target.value})}><option>Área</option><option>Actividad</option><option>Labor</option><option>Fundo o sede</option><option>Supervisor</option></select></div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-header"><div><h3 className="card-title">Reportes preestablecidos</h3><p className="card-sub">Costo, mano de obra, productividad, asistencia y ausentismo.</p></div></div>
+            <div className="card-body" style={{display:'flex', flexWrap:'wrap', gap:8}}>{HR_REPORTS.map(r => <button key={r} className="btn btn-secondary btn-sm" onClick={() => toast.success('Reporte abierto', r)}>{r}</button>)}</div>
+          </div>
+          <div className="card"><div className="card-header"><div><h3 className="card-title">Costo por labor</h3><p className="card-sub">Reporte requerido para costos laborales.</p></div></div><div className="card-body"><BarList rows={costoPorLabor.slice(0,6)} money /></div></div>
+          <div className="card"><div className="card-header"><div><h3 className="card-title">Productividad por supervisor</h3><p className="card-sub">Rendimiento promedio diario.</p></div></div><div className="card-body"><BarList rows={groupSum(withWorker, 'supervisor', r => r.avance).slice(0,6)} /></div></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ───────── Alertas ─────────
 function ModuleAlertas() {
   const materialAlerts = allActivities().filter(a => a.alarma);
@@ -1617,7 +1872,7 @@ function CampoMovil() {
 Object.assign(window, {
   ModuleDashboard, ModuleContratos, ModuleClientes, ModulePostventa,
   ModuleSalaProceso, ModuleVid, ModuleSombreadero, ModuleParrones, ModuleRiego, ModuleMateriales, ModuleLogistica,
-  ModuleActividades, ModuleCalendario, ModuleLotes, ModuleLiberacion, ModuleCostos, ModuleMaestros, CampoMovil,
+  ModuleActividades, ModuleCalendario, ModuleLotes, ModuleLiberacion, ModuleCostos, ModuleMaestros, ModuleRRHH, CampoMovil,
   ModuleAlertas,
   FilterChip,
 });
