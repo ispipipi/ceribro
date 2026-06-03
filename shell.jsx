@@ -46,14 +46,14 @@ function Login({ onPick }) {
   );
 }
 
-function Sidebar({ profile, currentModule, setModule, onClose }) {
+function Sidebar({ profile, currentModule, setModule, onClose, isOpen }) {
   const mods = profile.modules.map(id => ({ id, ...MODULES[id] })).filter(m => m.label);
   // Group
   const groups = {};
   mods.forEach(m => { (groups[m.group] = groups[m.group] || []).push(m); });
 
   return (
-    <aside className="sidebar">
+    <aside className={"sidebar " + (isOpen ? 'open' : '')}>
       <div className="sidebar-brand">
         <div style={{
           width:36, height:36, borderRadius:10,
@@ -97,7 +97,7 @@ function Sidebar({ profile, currentModule, setModule, onClose }) {
   );
 }
 
-function Topbar({ profile, currentModule, setModule, onMenu }) {
+function Topbar({ profile, currentModule, setModule, onMenu, onLogout }) {
   const m = MODULES[currentModule];
   const [notifOpen, setNotifOpen] = React.useState(false);
   return (
@@ -164,6 +164,10 @@ function Topbar({ profile, currentModule, setModule, onMenu }) {
         <div style={{fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{m?.label}</div>
       </div>
       <button className="icon-btn"><Icon name="bell" size={17}/><span className="dot"></span></button>
+      <button className="mobile-profile-btn" onClick={onLogout} title="Cambiar perfil">
+        <span className="avatar" style={{width:28, height:28, fontSize:11}}>{profile.avatar}</span>
+        <span>Cambiar</span>
+      </button>
     </div>
     </>
   );
@@ -175,11 +179,9 @@ function AppShell({ profile, children, currentModule, setModule, onLogout }) {
   return (
     <div className="app">
       <div className={"scrim " + (navOpen?'show':'')} onClick={() => setNavOpen(false)}></div>
-      <div className={navOpen?'sidebar open':''} style={{display:'contents'}}>
-        <Sidebar profile={profile} currentModule={currentModule} setModule={setModule} onClose={() => setNavOpen(false)} />
-      </div>
+      <Sidebar profile={profile} currentModule={currentModule} setModule={setModule} onClose={() => setNavOpen(false)} isOpen={navOpen} />
       <main className="main">
-        <Topbar profile={profile} currentModule={currentModule} setModule={setModule} onMenu={() => setNavOpen(true)} />
+        <Topbar profile={profile} currentModule={currentModule} setModule={setModule} onMenu={() => setNavOpen(true)} onLogout={onLogout} />
         <div className="content">
           {children}
         </div>

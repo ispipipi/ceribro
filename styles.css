@@ -229,6 +229,7 @@ a{ color: inherit; text-decoration: none; }
 .sidebar-foot .email{ font-size: 11.5px; color: var(--side-fg-dim); }
 .sidebar-foot .logout{ margin-left: auto; padding: 6px; border-radius: var(--r-sm); border: none; background: transparent; color: var(--side-fg-dim); cursor: pointer; }
 .sidebar-foot .logout:hover{ background: var(--side-bg-2); color: #fff; }
+.mobile-profile-btn{ display:none; }
 
 /* Main */
 .main{ display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
@@ -451,9 +452,20 @@ a{ color: inherit; text-decoration: none; }
     height: var(--topbar-h); padding: 0 16px;
     background: var(--surface); border-bottom: 1px solid var(--line);
   }
+  .mobile-profile-btn{
+    display:inline-flex; align-items:center; gap:6px;
+    height:36px; padding:0 8px; border-radius:var(--r-md);
+    border:1px solid var(--line); background:#fff; color:var(--vet-text);
+    font-size:12px; font-weight:600; cursor:pointer;
+  }
   .topbar{ display: none; }
   .content{ padding: 16px; }
   .topbar .search{ display: none; }
+}
+@media (max-width: 480px){
+  .mobile-topbar{ gap:8px; padding:0 10px; }
+  .mobile-profile-btn span:not(.avatar){ display:none; }
+  .mobile-topbar .icon-btn{ width:34px; height:34px; }
 }
 
 /* ───── Phone frame (campo móvil) ───── */
