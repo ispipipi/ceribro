@@ -1461,12 +1461,23 @@ function ModuleMaestros() {
 // ───────── Recursos Humanos ─────────
 function ModuleRRHH() {
   const toast = useToast();
-  const [tab, setTab] = React.useState('ejecutivo');
+  const [tab, setTab] = React.useState('asistencia');
   const [capture, setCapture] = React.useState({ fecha:'2026-06-02', sede:'Cura Mori', area:'Sombreadero', labor:'Riego manual', supervisor:'C. Vega' });
-  const [captureRows, setCaptureRows] = React.useState(HR_WORKERS.filter(w=>w.activo).slice(0,6).map(w => ({ id:w.id, estado:'Presente', entrada:'07:00', salida:'16:00', rol:w.rol, avance:0 })));
+  const roleOptions = [...new Set([...HR_WORKERS.map(w=>w.rol), 'Cosechador', 'Aplicador', 'Ayudante general', 'Supervisor cuadrilla'])].sort();
+  const activeWorkers = HR_WORKERS.filter(w=>w.activo);
+  const initialWorker = activeWorkers[0];
+  const [quick, setQuick] = React.useState({
+    worker: initialWorker?.id || '',
+    estado:'Presente',
+    entrada:'07:00',
+    salida:'16:00',
+    rol: initialWorker?.rol || roleOptions[0],
+    avance:0,
+  });
+  const [captureRows, setCaptureRows] = React.useState(activeWorkers.slice(0,6).map(w => ({ id:w.id, estado:'Pendiente', entrada:'', salida:'', rol:w.rol, avance:0 })));
   const [report, setReport] = React.useState({ nombre:'', foco:'Costo', fecha:'Diario', filtro:'Área' });
 
-  const activos = HR_WORKERS.filter(w=>w.activo);
+  const activos = activeWorkers;
   const withWorker = HR_ATTENDANCE.map(a => ({...a, workerData: HR_WORKERS.find(w=>w.id===a.worker)}));
   const totalHH = withWorker.reduce((a,b)=>a+b.hh,0);
   const totalExtras = withWorker.reduce((a,b)=>a+b.extras,0);
@@ -1498,8 +1509,43 @@ function ModuleRRHH() {
   const productividad = withWorker.filter(a=>a.hh>0).map(a => ({...a, trabajador:a.workerData?.nombre || a.worker, ratio:a.avance / a.hh})).sort((a,b)=>b.ratio-a.ratio);
   const vacacionesCriticas = activos.filter(w=>w.vacaciones>=20 || w.vencidas>0).sort((a,b)=>b.vacaciones-a.vacaciones);
 
+  const statusMeta = {
+    Presente: { chip:'chip-success', color:'var(--success)', bg:'var(--success-bg)', icon:'check-circle' },
+    Tardanza: { chip:'chip-warn', color:'var(--warn)', bg:'var(--warn-bg)', icon:'clock' },
+    Falta: { chip:'chip-danger', color:'var(--danger)', bg:'var(--danger-bg)', icon:'alert' },
+    Permiso: { chip:'chip-info', color:'var(--info)', bg:'var(--info-bg)', icon:'calendar-check' },
+    'Descanso médico': { chip:'chip-info', color:'var(--info)', bg:'var(--info-bg)', icon:'clipboard' },
+    Pendiente: { chip:'', color:'var(--muted)', bg:'var(--surface-3)', icon:'info' },
+  };
+  const currentTime = () => new Date().toTimeString().slice(0,5);
+  const selectedWorker = activos.find(w => w.id === quick.worker) || activos[0];
+  const rowsWithWorker = captureRows.map(r => ({...r, workerData: HR_WORKERS.find(w=>w.id===r.id)}));
+  const capturedCount = captureRows.filter(r => r.estado !== 'Pendiente').length;
+  const attendancePct = captureRows.length ? capturedCount / captureRows.length * 100 : 0;
+  const statusCounts = Object.keys(statusMeta).map(s => ({
+    label:s,
+    value:captureRows.filter(r => r.estado === s).length,
+    ...statusMeta[s],
+  })).filter(s => s.label !== 'Pendiente' || s.value > 0);
+
+  const patchWorkerDefaults = (id) => {
+    const w = HR_WORKERS.find(x => x.id === id);
+    setQuick(q => ({...q, worker:id, rol:w?.rol || q.rol}));
+  };
   const updateCapture = (id, patch) => setCaptureRows(rows => rows.map(r => r.id===id ? {...r, ...patch} : r));
-  const saveAttendance = () => toast.success('Asistencia capturada', `${capture.area} · ${capture.labor} · ${captureRows.length} registros`);
+  const addQuickAttendance = () => {
+    setCaptureRows(rows => {
+      const exists = rows.some(r => r.id === quick.worker);
+      const next = { id:quick.worker, estado:quick.estado, entrada:quick.entrada, salida:quick.salida, rol:quick.rol, avance:quick.avance };
+      return exists ? rows.map(r => r.id === quick.worker ? {...r, ...next} : r) : [next, ...rows];
+    });
+    toast.success('Trabajador registrado', `${selectedWorker?.nombre || 'Trabajador'} · ${quick.estado} · ${quick.rol}`);
+  };
+  const markAllPresent = () => {
+    setCaptureRows(rows => rows.map(r => ({...r, estado:'Presente', entrada:r.entrada || quick.entrada, salida:r.salida || quick.salida})));
+    toast.success('Cuadrilla marcada presente', `${capture.area} · ${captureRows.length} trabajadores`);
+  };
+  const saveAttendance = () => toast.success('Asistencia capturada', `${capture.area} · ${capture.labor} · ${capturedCount} de ${captureRows.length} registros`);
   const sendVacationMail = (w) => toast.info('Correo preparado', `${w.nombre}: sugerir programación de ${w.vacaciones} días acumulados`);
   const createReport = () => {
     toast.success('Reporte creado', report.nombre || `${report.foco} · ${report.fecha} por ${report.filtro}`);
@@ -1583,18 +1629,149 @@ function ModuleRRHH() {
 
       {tab==='asistencia' && (
         <div>
+          <div className="hr-mobile-grid mb-20">
+            <div className="card hr-quick-card">
+              <div className="card-header">
+                <div>
+                  <h3 className="card-title">Registro rápido en terreno</h3>
+                  <p className="card-sub">Pensado para celular/tablet: trabajador, rol, horario y estado.</p>
+                </div>
+                <button className="btn btn-secondary btn-sm" onClick={markAllPresent}><Icon name="check-circle" size={13}/> Todos presentes</button>
+              </div>
+              <div className="card-body">
+                <div className="hr-session-strip">
+                  <div className="field"><label className="label">Fecha</label><input className="input" type="date" value={capture.fecha} onChange={e=>setCapture({...capture, fecha:e.target.value})}/></div>
+                  <div className="field"><label className="label">Fundo / sede</label><select className="select" value={capture.sede} onChange={e=>setCapture({...capture, sede:e.target.value})}>{[...new Set(HR_WORKERS.map(w=>w.sede))].map(s => <option key={s}>{s}</option>)}</select></div>
+                  <div className="field"><label className="label">Área</label><select className="select" value={capture.area} onChange={e=>setCapture({...capture, area:e.target.value})}>{[...new Set(HR_WORKERS.map(w=>w.area))].map(a => <option key={a}>{a}</option>)}</select></div>
+                  <div className="field"><label className="label">Labor</label><select className="select" value={capture.labor} onChange={e=>setCapture({...capture, labor:e.target.value})}><option>Riego manual</option><option>Injerto bolsa</option><option>Poda patrón</option><option>Aplicación preventiva</option><option>Despacho</option><option>Control calidad</option></select></div>
+                </div>
+
+                <div className="hr-fast-form">
+                  <div className="field hr-worker-field">
+                    <label className="label">Trabajador</label>
+                    <select className="select hr-big-control" value={quick.worker} onChange={e=>patchWorkerDefaults(e.target.value)}>
+                      {activos.map(w => <option key={w.id} value={w.id}>{w.nombre} · {w.area}</option>)}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label className="label">Rol</label>
+                    <select className="select hr-big-control" value={quick.rol} onChange={e=>setQuick({...quick, rol:e.target.value})}>
+                      {roleOptions.map(r => <option key={r}>{r}</option>)}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label className="label">Entrada</label>
+                    <div className="hr-time-row">
+                      <input className="input hr-big-control" type="time" value={quick.entrada} onChange={e=>setQuick({...quick, entrada:e.target.value})}/>
+                      <button className="btn btn-secondary" onClick={()=>setQuick({...quick, entrada:currentTime()})}><Icon name="clock" size={14}/> Ahora</button>
+                    </div>
+                  </div>
+                  <div className="field">
+                    <label className="label">Salida</label>
+                    <div className="hr-time-row">
+                      <input className="input hr-big-control" type="time" value={quick.salida} onChange={e=>setQuick({...quick, salida:e.target.value})}/>
+                      <button className="btn btn-secondary" onClick={()=>setQuick({...quick, salida:currentTime()})}><Icon name="clock" size={14}/> Ahora</button>
+                    </div>
+                  </div>
+                  <div className="field">
+                    <label className="label">Avance</label>
+                    <input className="input hr-big-control" type="number" value={quick.avance} onChange={e=>setQuick({...quick, avance:e.target.value})} placeholder="0"/>
+                  </div>
+                </div>
+
+                <div className="hr-status-picker">
+                  {['Presente','Tardanza','Falta','Permiso','Descanso médico'].map(s => (
+                    <button key={s} className={"hr-status-btn " + (quick.estado===s?'active':'')} style={{'--status':statusMeta[s].color, '--status-bg':statusMeta[s].bg}} onClick={()=>setQuick({...quick, estado:s})}>
+                      <Icon name={statusMeta[s].icon} size={18}/>
+                      <span>{s}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="row wrap gap-8 mt-16">
+                  <button className="btn btn-primary btn-lg" onClick={addQuickAttendance}><Icon name="plus" size={16}/> Agregar / actualizar trabajador</button>
+                  <button className="btn btn-sun btn-lg" onClick={saveAttendance}><Icon name="save" size={16}/> Guardar asistencia</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header">
+                <div>
+                  <h3 className="card-title">Vista visual de asistencia</h3>
+                  <p className="card-sub">{capturedCount} de {captureRows.length} trabajadores registrados.</p>
+                </div>
+                <span className="chip chip-leaf">{fmtPct(attendancePct,0)}</span>
+              </div>
+              <div className="card-body">
+                <div className="hr-progress">
+                  <div className="hr-progress-ring" style={{'--pct':`${attendancePct}%`}}>
+                    <span>{fmtPct(attendancePct,0)}</span>
+                  </div>
+                  <div>
+                    <div className="strong">Avance de captura</div>
+                    <div className="text-muted" style={{fontSize:12.5}}>Cuadrilla {capture.area} · {capture.sede}</div>
+                  </div>
+                </div>
+                <div className="hr-status-summary">
+                  {statusCounts.map(s => (
+                    <div key={s.label} className="hr-status-tile" style={{background:s.bg, color:s.color}}>
+                      <Icon name={s.icon} size={17}/>
+                      <div><strong>{s.value}</strong><span>{s.label}</span></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="card mb-20">
-            <div className="card-header"><div><h3 className="card-title">Captura simple de asistencia en terreno</h3><p className="card-sub">Basado en la planilla obligatoria: fecha, fundo/sede, labor, rol, entrada, salida y estado.</p></div><button className="btn btn-primary" onClick={saveAttendance}><Icon name="save" size={14}/> Guardar asistencia</button></div>
-            <div className="filterbar">
-              <div className="field"><label className="label">Fecha</label><input className="input" type="date" value={capture.fecha} onChange={e=>setCapture({...capture, fecha:e.target.value})}/></div>
-              <div className="field"><label className="label">Fundo / sede</label><select className="select" value={capture.sede} onChange={e=>setCapture({...capture, sede:e.target.value})}>{[...new Set(HR_WORKERS.map(w=>w.sede))].map(s => <option key={s}>{s}</option>)}</select></div>
-              <div className="field"><label className="label">Área</label><select className="select" value={capture.area} onChange={e=>setCapture({...capture, area:e.target.value})}>{[...new Set(HR_WORKERS.map(w=>w.area))].map(a => <option key={a}>{a}</option>)}</select></div>
-              <div className="field"><label className="label">Labor</label><input className="input" value={capture.labor} onChange={e=>setCapture({...capture, labor:e.target.value})}/></div>
+            <div className="card-header">
+              <div>
+                <h3 className="card-title">Equipo de hoy</h3>
+                <p className="card-sub">Tarjetas táctiles por trabajador, editables sin abrir pantallas adicionales.</p>
+              </div>
+            </div>
+            <div className="hr-attendance-cards">
+              {rowsWithWorker.map(r => {
+                const meta = statusMeta[r.estado] || statusMeta.Pendiente;
+                return (
+                  <div key={r.id} className="hr-worker-card" style={{'--status':meta.color, '--status-bg':meta.bg}}>
+                    <div className="hr-worker-top">
+                      <div className="hr-avatar">{(r.workerData?.nombre || 'T').split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
+                      <div>
+                        <div className="strong">{r.workerData?.nombre}</div>
+                        <div className="text-muted" style={{fontSize:12}}>{r.workerData?.area} · {r.workerData?.sede}</div>
+                      </div>
+                      <span className={"chip " + meta.chip}>{r.estado}</span>
+                    </div>
+                    <div className="hr-worker-controls">
+                      <div className="field"><label className="label">Rol</label><select className="select" value={r.rol} onChange={e=>updateCapture(r.id,{rol:e.target.value})}>{roleOptions.map(o => <option key={o}>{o}</option>)}</select></div>
+                      <div className="field"><label className="label">Estado</label><select className="select" value={r.estado} onChange={e=>updateCapture(r.id,{estado:e.target.value})}><option>Pendiente</option><option>Presente</option><option>Tardanza</option><option>Falta</option><option>Permiso</option><option>Descanso médico</option></select></div>
+                      <div className="field"><label className="label">Entrada</label><input className="input" type="time" value={r.entrada} onChange={e=>updateCapture(r.id,{entrada:e.target.value})}/></div>
+                      <div className="field"><label className="label">Salida</label><input className="input" type="time" value={r.salida} onChange={e=>updateCapture(r.id,{salida:e.target.value})}/></div>
+                    </div>
+                    <div className="hr-worker-actions">
+                      <button className="btn btn-secondary btn-sm" onClick={()=>updateCapture(r.id,{estado:'Presente', entrada:r.entrada || quick.entrada, salida:r.salida || quick.salida})}><Icon name="check" size={13}/> Presente</button>
+                      <button className="btn btn-secondary btn-sm" onClick={()=>updateCapture(r.id,{estado:'Falta', entrada:'', salida:''})}><Icon name="alert" size={13}/> Falta</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="card mb-20">
+            <div className="card-header">
+              <div>
+                <h3 className="card-title">Planilla resumida</h3>
+                <p className="card-sub">Vista tipo planilla para revisión antes de guardar.</p>
+              </div>
             </div>
             <div className="table-wrap">
               <table className="tbl">
                 <thead><tr><th>Trabajador</th><th>Rol</th><th>Estado</th><th>Entrada</th><th>Salida</th><th className="num">Avance</th></tr></thead>
-                <tbody>{captureRows.map(r => { const w = HR_WORKERS.find(x=>x.id===r.id); return <tr key={r.id}><td><div className="strong">{w.nombre}</div><div className="text-muted" style={{fontSize:12}}>{w.area} · {w.sede}</div></td><td><input className="input" value={r.rol} onChange={e=>updateCapture(r.id,{rol:e.target.value})}/></td><td><select className="select" value={r.estado} onChange={e=>updateCapture(r.id,{estado:e.target.value})}><option>Presente</option><option>Tardanza</option><option>Falta</option><option>Permiso</option><option>Descanso médico</option></select></td><td><input className="input" type="time" value={r.entrada} onChange={e=>updateCapture(r.id,{entrada:e.target.value})}/></td><td><input className="input" type="time" value={r.salida} onChange={e=>updateCapture(r.id,{salida:e.target.value})}/></td><td className="num"><input className="input" type="number" value={r.avance} onChange={e=>updateCapture(r.id,{avance:e.target.value})}/></td></tr>; })}</tbody>
+                <tbody>{rowsWithWorker.map(r => <tr key={r.id}><td><div className="strong">{r.workerData?.nombre}</div><div className="text-muted" style={{fontSize:12}}>{r.workerData?.area} · {r.workerData?.sede}</div></td><td>{r.rol}</td><td><span className={"chip " + ((statusMeta[r.estado] || statusMeta.Pendiente).chip)}>{r.estado}</span></td><td>{r.entrada || '—'}</td><td>{r.salida || '—'}</td><td className="num">{fmtNum(r.avance || 0)}</td></tr>)}</tbody>
               </table>
             </div>
           </div>
