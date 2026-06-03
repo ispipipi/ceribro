@@ -210,6 +210,7 @@ const MATERIALES = [
   { sku:'M-006', nombre:'Patrón Freedom',         stock: 8200,  minimo: 20000, unidad:'un', categoria:'Patrones' },
   { sku:'M-007', nombre:'Pack injertación (set)', stock: 142, minimo: 100, unidad:'set', categoria:'Herramientas' },
   { sku:'M-008', nombre:'Bandejas siembra 50c',   stock: 6840, minimo: 2000, unidad:'un', categoria:'Envases' },
+  { sku:'M-009', nombre:'Jabas plásticas',        stock: 820, minimo: 300, unidad:'un', categoria:'Envases' },
 ];
 
 const CLIENTES_LIST = [

@@ -2,6 +2,8 @@
    Actividades, Calendario, Lotes, Liberación de calidad, Costos, Maestros, Campo móvil */
 
 const ACTIVITY_STORE_KEY = 'ceribro_demo_activities';
+const INVENTORY_STORE_KEY = 'ceribro_demo_inventory_movements';
+const BODEGAS = ['Bodega central', 'Bodega campo', 'Bodega fitosanitaria', 'Bodega cuarentena'];
 
 function readStoredActivities() {
   try {
@@ -18,6 +20,51 @@ function allActivities() {
 function appendActivity(activity) {
   const stored = readStoredActivities();
   localStorage.setItem(ACTIVITY_STORE_KEY, JSON.stringify([activity, ...stored]));
+}
+
+function readInventoryMovements() {
+  try {
+    return JSON.parse(localStorage.getItem(INVENTORY_STORE_KEY) || '[]');
+  } catch (err) {
+    return [];
+  }
+}
+
+function appendInventoryMovement(move) {
+  const stored = readInventoryMovements();
+  localStorage.setItem(INVENTORY_STORE_KEY, JSON.stringify([move, ...stored]));
+}
+
+function matchMaterial(name) {
+  const clean = (name || '').toLowerCase().trim();
+  return MATERIALES.find(m => m.nombre.toLowerCase() === clean) ||
+    MATERIALES.find(m => clean.includes(m.nombre.toLowerCase()) || m.nombre.toLowerCase().includes(clean));
+}
+
+function baseStockByBodega(material, bodega) {
+  const ratios = material.categoria === 'Patrones'
+    ? { 'Bodega central':0.36, 'Bodega campo':0.44, 'Bodega fitosanitaria':0.10, 'Bodega cuarentena':0.10 }
+    : material.categoria === 'Fertilizantes'
+      ? { 'Bodega central':0.42, 'Bodega campo':0.20, 'Bodega fitosanitaria':0.28, 'Bodega cuarentena':0.10 }
+      : { 'Bodega central':0.58, 'Bodega campo':0.24, 'Bodega fitosanitaria':0.08, 'Bodega cuarentena':0.10 };
+  return Math.round(material.stock * (ratios[bodega] || 0));
+}
+
+function stockFor(material, bodega, moves = readInventoryMovements()) {
+  const base = bodega ? baseStockByBodega(material, bodega) : material.stock;
+  return moves.filter(m => m.sku === material.sku && (!bodega || m.bodega === bodega)).reduce((acc, m) => {
+    return acc + (m.tipo === 'entrada' ? Number(m.cantidad || 0) : -Number(m.cantidad || 0));
+  }, base);
+}
+
+function buildInventoryRows(moves = readInventoryMovements()) {
+  return MATERIALES.flatMap(material => BODEGAS.map(bodega => {
+    const entradas = moves.filter(m => m.sku === material.sku && m.bodega === bodega && m.tipo === 'entrada').reduce((a,b)=>a+Number(b.cantidad || 0), 0);
+    const salidas = moves.filter(m => m.sku === material.sku && m.bodega === bodega && m.tipo === 'salida').reduce((a,b)=>a+Number(b.cantidad || 0), 0);
+    const base = baseStockByBodega(material, bodega);
+    const stock = base + entradas - salidas;
+    return { ...material, bodega, base, entradas, salidas, stock };
+  }));
 }
 
 function addDaysISO(date, days) {
@@ -902,10 +949,40 @@ function ModuleParrones() {
 }
 
 function ModuleLogistica() {
+  const toast = useToast();
+  const [moves, setMoves] = React.useState(readInventoryMovements());
+  const [receive, setReceive] = React.useState({ oc:ORDENES_COMPRA[0]?.oc || '', bodega:'Bodega central', cantidad:ORDENES_COMPRA[0]?.pendiente || 0 });
+  const selectedOC = ORDENES_COMPRA.find(o => o.oc === receive.oc) || ORDENES_COMPRA[0];
   const pendientes = ORDENES_COMPRA.reduce((a,b)=>a+b.pendiente,0);
   const recibidas = ORDENES_COMPRA.filter(o=>o.estado==='Recibida').length;
-  const stockCritico = MATERIALES.filter(m => m.stock < m.minimo);
-  const toast = useToast();
+  const currentMaterials = MATERIALES.map(m => ({...m, stockActual:stockFor(m, null, moves)}));
+  const stockCritico = currentMaterials.filter(m => m.stockActual < m.minimo);
+  const entradasCompra = moves.filter(m => m.tipo === 'entrada' && m.origen === 'Compra').reduce((a,b)=>a+Number(b.cantidad || 0), 0);
+  const cargarCompra = () => {
+    const material = matchMaterial(selectedOC?.material);
+    const cantidad = Number(receive.cantidad) || 0;
+    if (!material || cantidad <= 0) {
+      toast.warn('Recepción incompleta', 'Selecciona una OC y una cantidad válida.');
+      return;
+    }
+    const move = {
+      id:'INV-' + String(Date.now()).slice(-6),
+      fecha:new Date().toISOString().slice(0,10),
+      tipo:'entrada',
+      origen:'Compra',
+      ref:selectedOC.oc,
+      sku:material.sku,
+      material:material.nombre,
+      bodega:receive.bodega,
+      cantidad,
+      unidad:material.unidad,
+      responsable:'Logística',
+    };
+    appendInventoryMovement(move);
+    const next = [move, ...moves];
+    setMoves(next);
+    toast.success('Compra cargada a inventario', `${fmtNum(cantidad)} ${material.unidad} · ${receive.bodega}`);
+  };
   return (
     <div>
       <div className="page-head">
@@ -916,16 +993,30 @@ function ModuleLogistica() {
         <div className="kpi"><div className="kpi-accent"></div><div className="kpi-label">Órdenes activas</div><div className="kpi-value">{ORDENES_COMPRA.length}</div></div>
         <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Unidades pendientes</div><div className="kpi-value">{fmtNum(pendientes)}</div></div>
         <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">OC recibidas</div><div className="kpi-value">{recibidas}</div></div>
-        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Alertas bajo stock</div><div className="kpi-value" style={{color:stockCritico.length?'var(--danger)':'inherit'}}>{stockCritico.length}</div></div>
+        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Carga por compras</div><div className="kpi-value">{fmtNum(entradasCompra)}</div><div className="kpi-foot">Entradas ejecutadas</div></div>
       </div>
       <div className="card mb-20">
         <div className="card-header"><div><h3 className="card-title">Órdenes de compra</h3><p className="card-sub">Recibido versus pendiente de llegada.</p></div></div>
         <div className="table-wrap"><table className="tbl"><thead><tr><th>OC</th><th>Proveedor</th><th>Material</th><th className="num">Solicitado</th><th className="num">Recibido</th><th className="num">Pendiente</th><th>Llegada</th><th>Estado</th></tr></thead><tbody>{ORDENES_COMPRA.map(o => <tr key={o.oc}><td className="strong">{o.oc}</td><td>{o.proveedor}</td><td>{o.material}</td><td className="num">{fmtNum(o.solicitado)}</td><td className="num">{fmtNum(o.recibido)}</td><td className="num">{fmtNum(o.pendiente)}</td><td className="text-muted">{o.llegada}</td><td><span className={"chip " + (o.estado==='Recibida'?'chip-success':o.estado==='Parcial'?'chip-warn':'chip-info')}>{o.estado}</span></td></tr>)}</tbody></table></div>
       </div>
+      <div className="card mb-20">
+        <div className="card-header">
+          <div><h3 className="card-title">Carga de inventario por compras</h3><p className="card-sub">Registra recepción y suma stock a la bodega seleccionada.</p></div>
+          <button className="btn btn-primary" onClick={cargarCompra}><Icon name="plus" size={14}/> Cargar compra</button>
+        </div>
+        <div className="card-body">
+          <div className="filterbar" style={{gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))'}}>
+            <div className="field"><label className="label">Orden de compra</label><select className="select" value={receive.oc} onChange={e=>{ const oc = ORDENES_COMPRA.find(o=>o.oc===e.target.value); setReceive({...receive, oc:e.target.value, cantidad:oc?.pendiente || oc?.solicitado || 0}); }}>{ORDENES_COMPRA.map(o => <option key={o.oc}>{o.oc}</option>)}</select></div>
+            <div className="field"><label className="label">Material</label><input className="input" value={selectedOC?.material || ''} readOnly /></div>
+            <div className="field"><label className="label">Bodega destino</label><select className="select" value={receive.bodega} onChange={e=>setReceive({...receive, bodega:e.target.value})}>{BODEGAS.map(b => <option key={b}>{b}</option>)}</select></div>
+            <div className="field"><label className="label">Cantidad recibida</label><input className="input" type="number" value={receive.cantidad} onChange={e=>setReceive({...receive, cantidad:e.target.value})}/></div>
+          </div>
+        </div>
+      </div>
       <div className="grid grid-2 mb-20">
         <div className="card">
           <div className="card-header"><div><h3 className="card-title">Stock disponible para logística</h3><p className="card-sub">Materiales visibles para facilitar compras y reposición.</p></div></div>
-          <div className="table-wrap"><table className="tbl"><thead><tr><th>SKU</th><th>Material</th><th className="num">Stock</th><th className="num">Mínimo</th><th>Estado compra</th></tr></thead><tbody>{MATERIALES.slice(0,6).map(m => { const bajo = m.stock < m.minimo; return <tr key={m.sku}><td className="strong">{m.sku}</td><td>{m.nombre}</td><td className="num">{fmtNum(m.stock)} {m.unidad}</td><td className="num text-muted">{fmtNum(m.minimo)} {m.unidad}</td><td><span className={"chip " + (bajo?'chip-danger':'chip-success')}>{bajo?'Reponer':'Disponible'}</span></td></tr>; })}</tbody></table></div>
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>SKU</th><th>Material</th><th className="num">Stock actual</th><th className="num">Mínimo</th><th>Estado compra</th></tr></thead><tbody>{currentMaterials.slice(0,6).map(m => { const bajo = m.stockActual < m.minimo; return <tr key={m.sku}><td className="strong">{m.sku}</td><td>{m.nombre}</td><td className="num">{fmtNum(m.stockActual)} {m.unidad}</td><td className="num text-muted">{fmtNum(m.minimo)} {m.unidad}</td><td><span className={"chip " + (bajo?'chip-danger':'chip-success')}>{bajo?'Reponer':'Disponible'}</span></td></tr>; })}</tbody></table></div>
         </div>
         <div className="card">
           <div className="card-header"><div><h3 className="card-title">Alertas de bajo stock</h3><p className="card-sub">Insumos que requieren gestión de compra.</p></div></div>
@@ -978,13 +1069,52 @@ function ModuleRiego() {
 
 function ModuleMateriales() {
   const toast = useToast();
+  const [moves, setMoves] = React.useState(readInventoryMovements());
+  const [execBodega, setExecBodega] = React.useState('Bodega central');
   const activityRows = allActivities().filter(a => a.material);
   const usoAnunciado = activityRows.reduce((a,b)=>a + (Number(b.cantidad) || 0), 0);
-  const descuentos = activityRows.filter(a => a.impacto === 'descuento_bodega').length;
+  const salidasActividad = moves.filter(m => m.tipo === 'salida' && m.origen === 'Actividad');
+  const descuentos = salidasActividad.length;
   const stockOuts = activityRows.filter(a => a.impacto === 'stock_out').length;
   const alarmas = activityRows.filter(a => a.alarma).length;
   const vencen6Meses = MATERIAL_VENCIMIENTOS.length;
   const fichas = MATERIALES.slice(0,4).map((m,i) => ({...m, ficha:i%2===0?'Actualizada':'Pendiente', version:i%2===0?'v2026.05':'Sin versión', fecha:i%2===0?'2026-05-20':'—'}));
+  const inventoryRows = buildInventoryRows(moves);
+  const currentMaterials = MATERIALES.map(m => ({...m, stockActual:stockFor(m, null, moves)}));
+  const stockCriticoActual = currentMaterials.filter(m => m.stockActual < m.minimo);
+  const entradasCompra = moves.filter(m => m.tipo === 'entrada' && m.origen === 'Compra').reduce((a,b)=>a+Number(b.cantidad || 0), 0);
+  const executedRefs = new Set(salidasActividad.map(m => m.ref));
+  const ejecutarRebaja = (activity) => {
+    const material = matchMaterial(activity.material);
+    const cantidad = Number(activity.cantidad) || 0;
+    if (!material || cantidad <= 0) {
+      toast.warn('Solicitud incompleta', 'La actividad no tiene material o cantidad válida.');
+      return;
+    }
+    const disponible = stockFor(material, execBodega, moves);
+    if (disponible < cantidad) {
+      toast.error('Stock insuficiente', `${execBodega} tiene ${fmtNum(disponible)} ${material.unidad}.`);
+      return;
+    }
+    const move = {
+      id:'INV-' + String(Date.now()).slice(-6),
+      fecha:new Date().toISOString().slice(0,10),
+      tipo:'salida',
+      origen:'Actividad',
+      ref:activity.id,
+      sku:material.sku,
+      material:material.nombre,
+      bodega:execBodega,
+      cantidad,
+      unidad:material.unidad,
+      responsable:activity.responsable || 'Producción',
+      detalle:activity.actividad,
+    };
+    appendInventoryMovement(move);
+    const next = [move, ...moves];
+    setMoves(next);
+    toast.success('Rebaja ejecutada', `${fmtNum(cantidad)} ${material.unidad} descontados de ${execBodega}`);
+  };
   return (
     <div>
       <div className="page-head">
@@ -994,14 +1124,65 @@ function ModuleMateriales() {
         </div>
         <div className="actions">
           <button className="btn btn-secondary"><Icon name="download" size={14}/> Exportar</button>
-          <button className="btn btn-primary"><Icon name="plus" size={14}/> Nueva entrada</button>
+          <button className="btn btn-primary" onClick={() => toast.info('Carga por compras', 'Usa Logística > Carga de inventario por compras')}><Icon name="plus" size={14}/> Nueva entrada</button>
         </div>
       </div>
       <div className="grid grid-4 mb-20">
         <div className="kpi"><div className="kpi-accent"></div><div className="kpi-label">Utilización anunciada</div><div className="kpi-value">{fmtNum(usoAnunciado)}</div><div className="kpi-foot">Desde actividades</div></div>
-        <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Descuentos bodega</div><div className="kpi-value">{descuentos}</div><div className="kpi-foot">Programados</div></div>
-        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Alertas stock-out</div><div className="kpi-value" style={{color:stockOuts?'var(--danger)':'inherit'}}>{stockOuts}</div><div className="kpi-foot">Por actividad</div></div>
-        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Vencen en 6 meses</div><div className="kpi-value">{vencen6Meses}</div><div className="kpi-foot">Almacén</div></div>
+        <div className="kpi"><div className="kpi-accent sun"></div><div className="kpi-label">Rebajas ejecutadas</div><div className="kpi-value">{descuentos}</div><div className="kpi-foot">Por solicitud de actividad</div></div>
+        <div className="kpi"><div className="kpi-accent olive"></div><div className="kpi-label">Carga por compras</div><div className="kpi-value">{fmtNum(entradasCompra)}</div><div className="kpi-foot">Entradas registradas</div></div>
+        <div className="kpi"><div className="kpi-accent earth"></div><div className="kpi-label">Stock crítico</div><div className="kpi-value" style={{color:stockCriticoActual.length?'var(--danger)':'inherit'}}>{stockCriticoActual.length}</div><div className="kpi-foot">Con movimientos</div></div>
+      </div>
+      <div className="card mb-20">
+        <div className="card-header">
+          <div><h3 className="card-title">Control y ejecución de inventario</h3><p className="card-sub">Rebaja stock por solicitudes de actividad y muestra saldos por bodega.</p></div>
+          <div className="row gap-8"><span className="text-muted" style={{fontSize:12}}>Bodega de ejecución</span><select className="select" style={{width:190}} value={execBodega} onChange={e=>setExecBodega(e.target.value)}>{BODEGAS.map(b => <option key={b}>{b}</option>)}</select></div>
+        </div>
+        <div className="table-wrap">
+          <table className="tbl">
+            <thead><tr><th>Solicitud</th><th>Material</th><th className="num">Cantidad</th><th>Bodega</th><th className="num">Disponible</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+              {activityRows.filter(a => a.tipo === 'Uso material' || a.impacto === 'descuento_bodega' || a.impacto === 'stock_out').map(a => {
+                const material = matchMaterial(a.material);
+                const cantidad = Number(a.cantidad) || 0;
+                const disponible = material ? stockFor(material, execBodega, moves) : 0;
+                const ejecutada = executedRefs.has(a.id);
+                const insuficiente = material && disponible < cantidad && !ejecutada;
+                return (
+                  <tr key={a.id}>
+                    <td><div className="strong">{a.actividad}</div><div className="text-muted" style={{fontSize:12}}>{a.id} · {a.fecha}</div></td>
+                    <td>{material?.nombre || a.material}</td>
+                    <td className="num">{fmtNum(cantidad)} <span className="text-muted">{material?.unidad || a.unidad}</span></td>
+                    <td>{execBodega}</td>
+                    <td className="num">{material ? fmtNum(disponible) : '—'} <span className="text-muted">{material?.unidad}</span></td>
+                    <td>{ejecutada ? <span className="chip chip-success">Rebajada</span> : insuficiente ? <span className="chip chip-danger">Sin stock</span> : <span className="chip chip-warn">Pendiente rebaja</span>}</td>
+                    <td><button className="btn btn-primary btn-sm" disabled={ejecutada || insuficiente || !material} onClick={() => ejecutarRebaja(a)}><Icon name="check" size={13}/> Ejecutar rebaja</button></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div className="grid grid-2 mb-20">
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Saldos por bodega</h3><p className="card-sub">Stock base + compras - rebajas ejecutadas.</p></div></div>
+          <div className="table-wrap">
+            <table className="tbl">
+              <thead><tr><th>Bodega</th><th>Material</th><th className="num">Base</th><th className="num">Entradas</th><th className="num">Salidas</th><th className="num">Stock</th></tr></thead>
+              <tbody>{inventoryRows.map(r => <tr key={r.sku+r.bodega}><td className="strong">{r.bodega}</td><td>{r.nombre}</td><td className="num text-muted">{fmtNum(r.base)}</td><td className="num text-success">{fmtNum(r.entradas)}</td><td className="num text-danger">{fmtNum(r.salidas)}</td><td className="num strong">{fmtNum(r.stock)} {r.unidad}</td></tr>)}</tbody>
+            </table>
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-header"><div><h3 className="card-title">Kardex de movimientos</h3><p className="card-sub">Trazabilidad de entradas por compra y salidas por actividad.</p></div></div>
+          <div className="table-wrap">
+            <table className="tbl">
+              <thead><tr><th>Fecha</th><th>Tipo</th><th>Origen</th><th>Material</th><th>Bodega</th><th className="num">Cantidad</th><th>Referencia</th></tr></thead>
+              <tbody>{moves.length === 0 ? <tr><td colSpan="7" className="text-muted">Sin movimientos ejecutados todavía.</td></tr> : moves.slice(0,12).map(m => <tr key={m.id}><td className="text-muted">{m.fecha}</td><td><span className={"chip " + (m.tipo==='entrada'?'chip-success':'chip-warn')}>{m.tipo === 'entrada' ? 'Entrada' : 'Salida'}</span></td><td>{m.origen}</td><td className="strong">{m.material}</td><td>{m.bodega}</td><td className="num">{fmtNum(m.cantidad)} {m.unidad}</td><td className="text-muted">{m.ref}</td></tr>)}</tbody>
+            </table>
+          </div>
+        </div>
       </div>
       <div className="card mb-20">
         <div className="card-header"><div><h3 className="card-title">Actividades vinculadas a materiales</h3><p className="card-sub">Alimentan utilización anunciada, descuentos de bodega y alertas.</p></div></div>
@@ -1077,16 +1258,16 @@ function ModuleMateriales() {
           <table className="tbl">
             <thead><tr><th>SKU</th><th>Material</th><th>Categoría</th><th className="num">Stock</th><th className="num">Mínimo</th><th>Cobertura</th><th>Estado</th></tr></thead>
             <tbody>
-              {MATERIALES.map(m => {
-                const ratio = m.stock / m.minimo;
+              {currentMaterials.map(m => {
+                const ratio = m.stockActual / m.minimo;
                 const pct = Math.min(ratio*50, 100);
-                const bajo = m.stock < m.minimo;
+                const bajo = m.stockActual < m.minimo;
                 return (
                   <tr key={m.sku}>
                     <td className="strong">{m.sku}</td>
                     <td>{m.nombre}</td>
                     <td><span className="chip">{m.categoria}</span></td>
-                    <td className="num">{fmtNum(m.stock)} <span className="text-muted">{m.unidad}</span></td>
+                    <td className="num">{fmtNum(m.stockActual)} <span className="text-muted">{m.unidad}</span></td>
                     <td className="num text-muted">{fmtNum(m.minimo)} {m.unidad}</td>
                     <td>
                       <div className="bar-track" style={{width:120, height:6}}>
