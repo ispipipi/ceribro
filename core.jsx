@@ -265,7 +265,7 @@ const PROFILES = {
     iconClass:'sun',
     badges:['Estado de Resultados','Filtros gerenciales'],
     avatar:'DR', email:'directorio@viveroseltambo.cl',
-    modules:['directory','client','alerts','postsale'],
+    modules:['directory','money','client','alerts','postsale'],
   },
   calidad: {
     id:'calidad',

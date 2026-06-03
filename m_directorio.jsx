@@ -67,6 +67,92 @@ function FilterChip({ label, active, onClick, onRemove }){
   );
 }
 
+function buildERScenario(ag) {
+  const ppto = {
+    ingresos: ag.ingresos * 1.06,
+    insumos: ag.insumos * 0.97,
+    mano: ag.mano * 0.95,
+    indirectos: ag.indirectos * 0.96,
+  };
+  ppto.directos = ppto.insumos + ppto.mano;
+  ppto.resultado = ppto.ingresos - ppto.directos - ppto.indirectos;
+
+  const proy = {
+    ingresos: ag.ingresos * 1.08,
+    insumos: ag.insumos * 1.03,
+    mano: ag.mano * 1.04,
+    indirectos: ag.indirectos * 1.02,
+  };
+  proy.directos = proy.insumos + proy.mano;
+  proy.resultado = proy.ingresos - proy.directos - proy.indirectos;
+
+  return { ppto, proy };
+}
+
+function BudgetBalance({ value }) {
+  const good = value >= 0;
+  return (
+    <span style={{fontVariantNumeric:'tabular-nums', fontWeight:700, color: good ? 'var(--success)' : 'var(--danger)'}}>
+      {value < 0 ? '−' : ''}{fmtCLP(Math.abs(value))}
+    </span>
+  );
+}
+
+function ERComparisonTable({ ag }) {
+  const { ppto, proy } = buildERScenario(ag);
+  const rows = [
+    { label:'Ingresos por venta', key:'ingresos', kind:'income' },
+    { label:'Costos directos', key:'directos', kind:'cost', strong:true },
+    { label:'Insumos', key:'insumos', kind:'cost', sub:true },
+    { label:'Mano de obra', key:'mano', kind:'cost', sub:true },
+    { label:'Costos indirectos', key:'indirectos', kind:'cost' },
+    { label:'Resultado operacional', key:'resultado', kind:'income', strong:true, result:true },
+  ];
+
+  const saldoPpto = (row) => {
+    if (row.kind === 'cost') return ppto[row.key] - ag[row.key];
+    return ag[row.key] - ppto[row.key];
+  };
+
+  return (
+    <div className="card mb-20">
+      <div className="card-header">
+        <div>
+          <h3 className="card-title">EE.RR · Actual, PPTO y proyectado</h3>
+          <p className="card-sub">Saldos calculados contra presupuesto demo del período filtrado.</p>
+        </div>
+        <span className="chip chip-info"><Icon name="trending-up" size={13}/> Proyección cierre</span>
+      </div>
+      <div className="table-wrap">
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Concepto</th>
+              <th className="num">Valores actuales</th>
+              <th className="num">PPTO aprobado</th>
+              <th className="num">Saldo PPTO</th>
+              <th className="num">Valores proyectados</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.key}>
+                <td className={r.strong ? 'strong' : ''} style={{paddingLeft:r.sub?28:undefined, color:r.sub?'var(--muted)':undefined}}>
+                  {r.label}
+                </td>
+                <td className="num strong" style={{color:r.result?'var(--vet-leaf-dark)':undefined}}>{fmtCLP(ag[r.key])}</td>
+                <td className="num">{fmtCLP(ppto[r.key])}</td>
+                <td className="num"><BudgetBalance value={saldoPpto(r)} /></td>
+                <td className="num strong" style={{color:r.result?'var(--vet-leaf-dark)':undefined}}>{fmtCLP(proy[r.key])}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function ModuleDirectorio() {
   const [fCliente, setFCliente] = React.useState('');
   const [fProductor, setFProductor] = React.useState('');
@@ -187,7 +273,9 @@ function ModuleDirectorio() {
         </div>
       </div>
 
-      <div className="grid mb-20" style={{gridTemplateColumns:'1fr 1fr'}}>
+      <ERComparisonTable ag={ag} />
+
+      <div className="grid mb-20" style={{gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))'}}>
         <ERWaterfall ag={ag} />
 
         <div className="card">
@@ -200,9 +288,9 @@ function ModuleDirectorio() {
           <div className="card-body">
             <div className="grid grid-2 gap-16">
               <div className="kpi" style={{padding:'14px 16px'}}>
-                <div className="kpi-label">Plantas filtradas</div>
+                <div className="kpi-label">Plantas consideradas</div>
                 <div className="kpi-value" style={{fontSize:24}}>{fmtNum(ag.plantas)}</div>
-                <div className="kpi-foot"><span>de {fmtNum(agAll.plantas)} totales</span></div>
+                <div className="kpi-foot"><span>Incluidas por filtros · {fmtNum(agAll.plantas)} totales</span></div>
               </div>
               <div className="kpi" style={{padding:'14px 16px'}}>
                 <div className="kpi-label">Contratos</div>
