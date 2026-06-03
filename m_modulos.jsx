@@ -1643,8 +1643,15 @@ function ModuleMaestros() {
 function ModuleRRHH() {
   const toast = useToast();
   const [tab, setTab] = React.useState('asistencia');
+  const [voiceText, setVoiceText] = React.useState('Juan Perez está en el sector de oficinas, tiene el rol de sembrador y está presente desde las 7 am de hoy hasta las 18');
+  const [isListening, setIsListening] = React.useState(false);
+  const [voicePreview, setVoicePreview] = React.useState(null);
+  const [customWorkers, setCustomWorkers] = React.useState([]);
+  const [customAreas, setCustomAreas] = React.useState(['Oficinas']);
+  const [spokenRoles, setSpokenRoles] = React.useState(['Sembrador']);
+  const recognitionRef = React.useRef(null);
   const [capture, setCapture] = React.useState({ fecha:'2026-06-02', sede:'Cura Mori', area:'Sombreadero', labor:'Riego manual', supervisor:'C. Vega' });
-  const roleOptions = [...new Set([...HR_WORKERS.map(w=>w.rol), 'Cosechador', 'Aplicador', 'Ayudante general', 'Supervisor cuadrilla'])].sort();
+  const roleOptions = [...new Set([...HR_WORKERS.map(w=>w.rol), 'Cosechador', 'Aplicador', 'Ayudante general', 'Supervisor cuadrilla', ...spokenRoles])].sort();
   const activeWorkers = HR_WORKERS.filter(w=>w.activo);
   const initialWorker = activeWorkers[0];
   const [quick, setQuick] = React.useState({
@@ -1658,7 +1665,8 @@ function ModuleRRHH() {
   const [captureRows, setCaptureRows] = React.useState(activeWorkers.slice(0,6).map(w => ({ id:w.id, estado:'Pendiente', entrada:'', salida:'', rol:w.rol, avance:0 })));
   const [report, setReport] = React.useState({ nombre:'', foco:'Costo', fecha:'Diario', filtro:'Área' });
 
-  const activos = activeWorkers;
+  const activos = [...activeWorkers, ...customWorkers];
+  const areaOptions = [...new Set([...HR_WORKERS.map(w=>w.area), ...customWorkers.map(w=>w.area), ...customAreas])].filter(Boolean).sort();
   const withWorker = HR_ATTENDANCE.map(a => ({...a, workerData: HR_WORKERS.find(w=>w.id===a.worker)}));
   const totalHH = withWorker.reduce((a,b)=>a+b.hh,0);
   const totalExtras = withWorker.reduce((a,b)=>a+b.extras,0);
@@ -1700,7 +1708,7 @@ function ModuleRRHH() {
   };
   const currentTime = () => new Date().toTimeString().slice(0,5);
   const selectedWorker = activos.find(w => w.id === quick.worker) || activos[0];
-  const rowsWithWorker = captureRows.map(r => ({...r, workerData: HR_WORKERS.find(w=>w.id===r.id)}));
+  const rowsWithWorker = captureRows.map(r => ({...r, workerData: activos.find(w=>w.id===r.id)}));
   const capturedCount = captureRows.filter(r => r.estado !== 'Pendiente').length;
   const attendancePct = captureRows.length ? capturedCount / captureRows.length * 100 : 0;
   const statusCounts = Object.keys(statusMeta).map(s => ({
@@ -1710,7 +1718,7 @@ function ModuleRRHH() {
   })).filter(s => s.label !== 'Pendiente' || s.value > 0);
 
   const patchWorkerDefaults = (id) => {
-    const w = HR_WORKERS.find(x => x.id === id);
+    const w = activos.find(x => x.id === id);
     setQuick(q => ({...q, worker:id, rol:w?.rol || q.rol}));
   };
   const updateCapture = (id, patch) => setCaptureRows(rows => rows.map(r => r.id===id ? {...r, ...patch} : r));
@@ -1727,6 +1735,109 @@ function ModuleRRHH() {
     toast.success('Cuadrilla marcada presente', `${capture.area} · ${captureRows.length} trabajadores`);
   };
   const saveAttendance = () => toast.success('Asistencia capturada', `${capture.area} · ${capture.labor} · ${capturedCount} de ${captureRows.length} registros`);
+  const normalizeVoice = (value) => (value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const titleCase = (value) => (value || '').trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  const parseVoiceTime = (hour, minute = '00', meridian = '') => {
+    let h = Number(hour);
+    const m = String(minute || '00').padStart(2, '0');
+    const ampm = normalizeVoice(meridian).replace(/\./g, '').replace(/\s+/g, '');
+    if (ampm === 'pm' && h < 12) h += 12;
+    if (ampm === 'am' && h === 12) h = 0;
+    return String(Math.min(Math.max(h, 0), 23)).padStart(2, '0') + ':' + m;
+  };
+  const parseVoiceCommand = (raw) => {
+    const original = (raw || '').trim();
+    const norm = normalizeVoice(original);
+    const workerMatch = activos.find(w => normalizeVoice(w.nombre).split(/\s+/).filter(Boolean).every(part => norm.includes(part)));
+    let spokenName = workerMatch?.nombre || '';
+    if (!spokenName) {
+      const nameMatch = original.match(/^(.+?)\s+(?:est[aá](?:\s+en)?|se encuentra(?:\s+en)?|tiene|en el sector|en sector)(?:\s|,|\.|$)/i);
+      spokenName = titleCase((nameMatch?.[1] || '').replace(/^(el|la|don|doña)\s+/i, '').trim());
+    }
+    const sectorMatch = original.match(/sector\s+(?:de\s+|del\s+|la\s+|las\s+|los\s+)?([^,;.]+?)(?=\s+(?:tiene|con|y|est[aá]|desde|hasta)\b|[,;.]|$)/i);
+    const roleMatch = original.match(/rol\s+(?:de\s+|del\s+|como\s+)?([^,;.]+?)(?=\s+(?:y|est[aá]|desde|hasta)\b|[,;.]|$)/i);
+    const entradaMatch = original.match(/desde\s+(?:las?\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm|a\.?m\.?|p\.?m\.?)?/i);
+    const salidaMatch = original.match(/hasta\s+(?:las?\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm|a\.?m\.?|p\.?m\.?)?/i);
+    const sector = sectorMatch ? titleCase(sectorMatch[1].replace(/^de\s+/i, '').trim()) : capture.area;
+    const roleRaw = roleMatch ? titleCase(roleMatch[1].trim()) : (workerMatch?.rol || quick.rol);
+    const parsed = {
+      worker: workerMatch || null,
+      workerName: spokenName || selectedWorker?.nombre || '',
+      sector,
+      rol: roleRaw,
+      estado: norm.includes('descanso medico') ? 'Descanso médico' : norm.includes('permiso') ? 'Permiso' : norm.includes('falta') || norm.includes('ausente') ? 'Falta' : norm.includes('tardanza') || norm.includes('atras') ? 'Tardanza' : norm.includes('presente') ? 'Presente' : quick.estado,
+      entrada: entradaMatch ? parseVoiceTime(entradaMatch[1], entradaMatch[2], entradaMatch[3]) : quick.entrada,
+      salida: salidaMatch ? parseVoiceTime(salidaMatch[1], salidaMatch[2], salidaMatch[3]) : quick.salida,
+    };
+    return parsed;
+  };
+  const applyVoiceCommand = (text) => {
+    const parsed = parseVoiceCommand(text);
+    if (!parsed.workerName) {
+      toast.warn('No entendí el trabajador', 'Di o escribe nombre, sector, rol, estado y horario.');
+      return;
+    }
+    const existing = parsed.worker || activos.find(w => normalizeVoice(w.nombre) === normalizeVoice(parsed.workerName));
+    const workerId = existing?.id || ('TMP-' + normalizeVoice(parsed.workerName).replace(/\s+/g, '-'));
+    if (!existing) {
+      const nuevo = {
+        id: workerId,
+        nombre: parsed.workerName,
+        genero:'No definido',
+        edad:0,
+        area: parsed.sector,
+        sede: capture.sede,
+        rol: parsed.rol,
+        cargo:'Jornal',
+        supervisor:capture.supervisor,
+        activo:true,
+        asignacion:false,
+        vacaciones:0,
+        vencidas:0,
+        costoDia:42000,
+        tipo:'Operativo',
+        turno:'Día',
+      };
+      setCustomWorkers(prev => prev.some(w => w.id === workerId) ? prev : [nuevo, ...prev]);
+    }
+    if (parsed.sector && !areaOptions.includes(parsed.sector)) setCustomAreas(prev => [...new Set([parsed.sector, ...prev])]);
+    if (parsed.rol && !roleOptions.includes(parsed.rol)) setSpokenRoles(prev => [...new Set([parsed.rol, ...prev])]);
+    setCapture(prev => ({...prev, area: parsed.sector || prev.area}));
+    setQuick(q => ({...q, worker:workerId, rol:parsed.rol, estado:parsed.estado, entrada:parsed.entrada, salida:parsed.salida}));
+    setCaptureRows(rows => {
+      const next = { id:workerId, estado:parsed.estado, entrada:parsed.entrada, salida:parsed.salida, rol:parsed.rol, avance:0 };
+      return rows.some(r => r.id === workerId) ? rows.map(r => r.id === workerId ? {...r, ...next} : r) : [next, ...rows];
+    });
+    setVoicePreview(parsed);
+    toast.success('Asistencia registrada por voz', `${parsed.workerName} · ${parsed.sector} · ${parsed.rol}`);
+  };
+  const startVoiceCapture = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.warn('Micrófono no disponible', 'Este navegador no permite dictado. Usa el texto y presiona Interpretar.');
+      return;
+    }
+    if (recognitionRef.current) recognitionRef.current.stop();
+    const rec = new SpeechRecognition();
+    recognitionRef.current = rec;
+    rec.lang = 'es-CL';
+    rec.interimResults = false;
+    rec.continuous = false;
+    rec.onstart = () => setIsListening(true);
+    rec.onerror = () => {
+      setIsListening(false);
+      toast.warn('No pude escuchar', 'Revisa permisos de micrófono o usa el campo de texto.');
+    };
+    rec.onend = () => setIsListening(false);
+    rec.onresult = (event) => {
+      const spoken = Array.from(event.results).map(r => r[0]?.transcript || '').join(' ').trim();
+      if (spoken) {
+        setVoiceText(spoken);
+        applyVoiceCommand(spoken);
+      }
+    };
+    rec.start();
+  };
   const sendVacationMail = (w) => toast.info('Correo preparado', `${w.nombre}: sugerir programación de ${w.vacaciones} días acumulados`);
   const createReport = () => {
     toast.success('Reporte creado', report.nombre || `${report.foco} · ${report.fecha} por ${report.filtro}`);
@@ -1823,8 +1934,33 @@ function ModuleRRHH() {
                 <div className="hr-session-strip">
                   <div className="field"><label className="label">Fecha</label><input className="input" type="date" value={capture.fecha} onChange={e=>setCapture({...capture, fecha:e.target.value})}/></div>
                   <div className="field"><label className="label">Fundo / sede</label><select className="select" value={capture.sede} onChange={e=>setCapture({...capture, sede:e.target.value})}>{[...new Set(HR_WORKERS.map(w=>w.sede))].map(s => <option key={s}>{s}</option>)}</select></div>
-                  <div className="field"><label className="label">Área</label><select className="select" value={capture.area} onChange={e=>setCapture({...capture, area:e.target.value})}>{[...new Set(HR_WORKERS.map(w=>w.area))].map(a => <option key={a}>{a}</option>)}</select></div>
+                  <div className="field"><label className="label">Área</label><select className="select" value={capture.area} onChange={e=>setCapture({...capture, area:e.target.value})}>{areaOptions.map(a => <option key={a}>{a}</option>)}</select></div>
                   <div className="field"><label className="label">Labor</label><select className="select" value={capture.labor} onChange={e=>setCapture({...capture, labor:e.target.value})}><option>Riego manual</option><option>Injerto bolsa</option><option>Poda patrón</option><option>Aplicación preventiva</option><option>Despacho</option><option>Control calidad</option></select></div>
+                </div>
+
+                <div className="hr-voice-card">
+                  <div className="hr-voice-head">
+                    <div>
+                      <div className="strong">Dictado de asistencia</div>
+                      <div className="text-muted" style={{fontSize:12.5}}>Ejemplo: Juan Perez está en el sector de oficinas, rol sembrador, presente desde las 7 am hasta las 18.</div>
+                    </div>
+                    <button className={"btn " + (isListening ? 'btn-sun' : 'btn-primary')} onClick={startVoiceCapture}>
+                      <Icon name="mic" size={15}/> {isListening ? 'Escuchando...' : 'Hablar'}
+                    </button>
+                  </div>
+                  <div className="hr-voice-input">
+                    <textarea className="textarea" value={voiceText} onChange={e=>setVoiceText(e.target.value)} />
+                    <button className="btn btn-secondary" onClick={() => applyVoiceCommand(voiceText)}><Icon name="check" size={14}/> Interpretar texto</button>
+                  </div>
+                  {voicePreview && (
+                    <div className="hr-voice-preview">
+                      <span className="chip chip-leaf">{voicePreview.workerName}</span>
+                      <span className="chip chip-info">{voicePreview.sector}</span>
+                      <span className="chip">{voicePreview.rol}</span>
+                      <span className={"chip " + (statusMeta[voicePreview.estado]?.chip || '')}>{voicePreview.estado}</span>
+                      <span className="chip chip-sun">{voicePreview.entrada} - {voicePreview.salida}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="hr-fast-form">
