@@ -64,6 +64,7 @@ function Sidebar({ profile, currentModule, setModule, onClose, isOpen }) {
         </div>
         <div style={{minWidth:0}}>
           <div className="name">Ceribro</div>
+          <div className="powered">Powered by NPR</div>
           <div className="sub">Viveros El Tambo</div>
         </div>
       </div>

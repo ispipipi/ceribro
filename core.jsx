@@ -41,7 +41,8 @@ function VetLogoFull({ height = 32, light = false }) {
       <VetLogo size={height} />
       <div style={{display:"flex", flexDirection:"column", lineHeight:1}}>
         <div style={{fontFamily:"var(--font-display)", fontWeight:500, fontSize: height*0.55, color: txt, letterSpacing:".01em"}}>Ceribro</div>
-        <div style={{fontSize: height*0.28, color: light?"rgba(255,255,255,.65)":"var(--muted)", letterSpacing:".14em", textTransform:"uppercase", marginTop:2, fontWeight:600}}>Viveros El Tambo</div>
+        <div style={{fontSize: height*0.26, color: light?"rgba(255,255,255,.72)":"var(--muted)", letterSpacing:".1em", textTransform:"uppercase", marginTop:2, fontWeight:700}}>Powered by NPR</div>
+        <div style={{fontSize: height*0.22, color: light?"rgba(255,255,255,.55)":"var(--muted)", letterSpacing:".12em", textTransform:"uppercase", marginTop:3, fontWeight:600}}>Viveros El Tambo</div>
       </div>
     </div>
   );
