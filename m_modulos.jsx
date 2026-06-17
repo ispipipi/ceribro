@@ -452,35 +452,63 @@ function ModuleDashboard({ profile }) {
       <div className="card">
         <div className="card-header">
           <div>
-            <h3 className="card-title">Lotes destacados</h3>
-            <p className="card-sub">Top de lotes por volumen y avance</p>
+            <h3 className="card-title">Control de entregas</h3>
+            <p className="card-sub">Seguimiento por lote: siembra, proyección de envío y cumplimiento</p>
           </div>
         </div>
         <div className="table-wrap">
           <table className="tbl">
             <thead><tr>
-              <th>Lote</th><th>Cliente</th><th>Variedad</th><th className="num">Plantas</th><th>DDS</th><th>Estado</th><th>Calidad</th><th>Ubicación</th>
+              <th>Cliente</th><th>Variedad</th><th>Formato</th>
+              <th className="num">Inj.</th><th className="num">Siembra</th><th>DDS</th>
+              <th className="num">Plantas</th><th className="num">Pedido</th>
+              <th className="num">Proy. Envío</th><th className="num">% Envío</th><th>F. Envío</th>
             </tr></thead>
             <tbody>
-              {LOTES.slice(0,6).map(l => (
-                <tr key={l.id}>
-                  <td className="strong">{l.id}</td>
-                  <td>{l.cliente}</td>
-                  <td>{l.variedad}</td>
-                  <td className="num">{fmtNum(l.plantas)}</td>
-                  <td>
-                    <div className="row gap-8">
-                      <div className="bar-track" style={{width:60, height:6}}>
-                        <div className="bar-fill" style={{width: Math.min(l.dds, 100)+'%', background: l.dds<30?'var(--vet-leaf)':l.dds<70?'var(--vet-sun)':'var(--vet-earth)'}}></div>
-                      </div>
-                      <span style={{fontSize:12.5}}>{l.dds}d</span>
-                    </div>
-                  </td>
-                  <td><span className="chip chip-leaf">{l.estado}</span></td>
-                  <td><span className={"chip " + (l.calidad==='OK'?'chip-success':l.calidad==='Alerta'?'chip-warn':'chip-danger')}>{l.calidad}</span></td>
-                  <td className="text-muted">{l.ubicacion}</td>
-                </tr>
-              ))}
+              {(() => {
+                const today = new Date();
+                const ENTREGAS = [
+                  { lote:'L-2025-001', cliente:'Agrolatina',    variedad:'Timpson',           formato:'Bolsa',    inj:62832, siembra:60100, dds:42,  plantas:60100, pedido:58000, proy_envio:49282, pct_envio:85.0, f_envio:'2026-06-18' },
+                  { lote:'L-2025-002', cliente:'Don Guillermo', variedad:'Autumn Crisp',       formato:'Bolsa',    inj:64240, siembra:61800, dds:28,  plantas:61800, pedido:65000, proy_envio:50676, pct_envio:77.9, f_envio:'2026-06-14' },
+                  { lote:'L-2025-003', cliente:'Danper',        variedad:'Sweet Celebration',  formato:'Bolsa',    inj:62070, siembra:54900, dds:65,  plantas:54900, pedido:60000, proy_envio:45018, pct_envio:75.0, f_envio:'2026-06-20' },
+                  { lote:'L-2025-004', cliente:'AIB',           variedad:'Sweet Globe',        formato:'Barbada',  inj:20000, siembra:19400, dds:78,  plantas:19400, pedido:20000, proy_envio:15908, pct_envio:79.5, f_envio:'2026-07-02' },
+                  { lote:'L-2025-005', cliente:'SAMNSA',        variedad:'Sweet Globe',        formato:'Barbada',  inj:30000, siembra:27200, dds:14,  plantas:27200, pedido:30000, proy_envio:22304, pct_envio:74.3, f_envio:'2026-07-15' },
+                  { lote:'L-2025-007', cliente:'Agrolatina',    variedad:'Ruby Rush',          formato:'Bolsa',    inj:38080, siembra:35600, dds:56,  plantas:35600, pedido:38000, proy_envio:29192, pct_envio:76.8, f_envio:'2026-06-28' },
+                  { lote:'L-2025-008', cliente:'Parvina',       variedad:'Itum 16',            formato:'Bolsa',    inj:12000, siembra:11100, dds:22,  plantas:11100, pedido:12000, proy_envio:9102,  pct_envio:75.9, f_envio:'2026-07-10' },
+                ];
+                return ENTREGAS.map(r => {
+                  const envioDate = new Date(r.f_envio);
+                  const diffDays = Math.ceil((envioDate - today) / (1000*60*60*24));
+                  const alerta = diffDays >= 0 && diffDays <= 3;
+                  const pctColor = r.pct_envio >= 90 ? 'var(--success)' : r.pct_envio >= 75 ? '#d97706' : 'var(--danger)';
+                  return (
+                    <tr key={r.lote} style={{background: alerta ? '#fffbeb' : undefined}}>
+                      <td className="strong">{r.cliente}</td>
+                      <td>{r.variedad}</td>
+                      <td><span className="chip chip-leaf" style={{fontSize:11}}>{r.formato}</span></td>
+                      <td className="num">{fmtNum(r.inj)}</td>
+                      <td className="num">{fmtNum(r.siembra)}</td>
+                      <td>
+                        <div className="row gap-8">
+                          <div className="bar-track" style={{width:48, height:5}}>
+                            <div className="bar-fill" style={{width: Math.min(r.dds, 100)+'%', background: r.dds<30?'var(--vet-leaf)':r.dds<70?'var(--vet-sun)':'var(--vet-earth)'}}></div>
+                          </div>
+                          <span style={{fontSize:12}}>{r.dds}d</span>
+                        </div>
+                      </td>
+                      <td className="num">{fmtNum(r.plantas)}</td>
+                      <td className="num">{fmtNum(r.pedido)}</td>
+                      <td className="num">{fmtNum(r.proy_envio)}</td>
+                      <td className="num"><span style={{fontWeight:600, color:pctColor}}>{fmtPct(r.pct_envio)}</span></td>
+                      <td style={{whiteSpace:'nowrap'}}>
+                        {alerta
+                          ? <span style={{fontWeight:600, color:'#d97706', fontSize:12}}>⚠️ {r.f_envio}</span>
+                          : <span style={{fontSize:12.5}}>{r.f_envio}</span>}
+                      </td>
+                    </tr>
+                  );
+                });
+              })()}
             </tbody>
           </table>
         </div>
