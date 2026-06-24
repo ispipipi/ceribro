@@ -201,6 +201,8 @@ const LOTES = [
   { id:'L-2025-006', cliente:'Don Luis',      variedad:'Autumn Crisp',     plantas:34000, dds: 95, estado:'Despacho',        calidad:'OK',   ubicacion:'Sector B-2' },
   { id:'L-2025-007', cliente:'Agrolatina',    variedad:'Ruby Rush',        plantas:38080, dds: 56, estado:'Brotamiento',     calidad:'OK',   ubicacion:'Sector E-1' },
   { id:'L-2025-008', cliente:'Parvina',       variedad:'Itum 16',          plantas:12000, dds: 22, estado:'Siembra',         calidad:'Crítico', ubicacion:'Sector A-2' },
+  { id:'L-2025-009', cliente:'Don Guillermo', variedad:'Autumn Crisp',     plantas:50000, dds: 35, estado:'Brotamiento',     calidad:'OK',      ubicacion:'Sector B-3' },
+  { id:'L-2025-011', cliente:'Agrolatina',    variedad:'Timpson',          plantas:28500, dds: 88, estado:'Cosecha',         calidad:'OK',      ubicacion:'Sector E-2' },
 ];
 
 const MATERIALES = [

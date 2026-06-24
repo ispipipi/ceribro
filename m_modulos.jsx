@@ -339,7 +339,7 @@ function ModuleDashboard({ profile }) {
   const stats = [
     { label:'Plantas en proceso', value: fmtNum(ag.plantas), sub:'12 contratos', accent:'', icon:'sprout' },
     { label:'Ingresos comprometidos', value: fmtCLP(ag.ingresos), sub: 'Período Ago–Dic 2025', accent:'sun', icon:'money' },
-    { label:'Lotes activos', value: LOTES.length, sub: '5 sectores · 4 estados', accent:'olive', icon:'lots' },
+    { label:'Lotes activos', value: LOTES.length, sub: `${new Set(LOTES.map(l=>l.ubicacion.split('·')[0].trim())).size} sectores · ${new Set(LOTES.map(l=>l.estado)).size} estados`, accent:'olive', icon:'lots' },
     { label:'Postventas abiertas', value: POSTVENTA.filter(p=>p.estado!=='Aprobado').length, sub: 'requieren atención', accent:'earth', icon:'postsale' },
   ];
   const breederData = Object.values(CONTRATOS_ER.reduce((acc, c) => {
@@ -360,7 +360,7 @@ function ModuleDashboard({ profile }) {
       <div className="page-head">
         <div>
           <h1 className="page-title">Buen día, {profile.nombre}</h1>
-          <p className="page-sub">Lunes 4 de Mayo de 2026 · Resumen general de la operación</p>
+          <p className="page-sub">{new Date().toLocaleDateString('es-CL', {weekday:'long', day:'numeric', month:'long', year:'numeric'}).replace(/^\w/, c => c.toUpperCase())} · Resumen general de la operación</p>
         </div>
         <div className="actions">
           <button className="btn btn-secondary"><Icon name="download" size={14}/> Exportar reporte</button>
@@ -467,15 +467,21 @@ function ModuleDashboard({ profile }) {
             <tbody>
               {(() => {
                 const today = new Date();
-                const ENTREGAS = [
-                  { lote:'L-2025-001', cliente:'Agrolatina',    variedad:'Timpson',           formato:'Bolsa',    inj:62832, siembra:60100, dds:42,  plantas:60100, pedido:58000, proy_envio:49282, pct_envio:85.0, f_envio:'2026-06-18' },
-                  { lote:'L-2025-002', cliente:'Don Guillermo', variedad:'Autumn Crisp',       formato:'Bolsa',    inj:64240, siembra:61800, dds:28,  plantas:61800, pedido:65000, proy_envio:50676, pct_envio:77.9, f_envio:'2026-06-14' },
-                  { lote:'L-2025-003', cliente:'Danper',        variedad:'Sweet Celebration',  formato:'Bolsa',    inj:62070, siembra:54900, dds:65,  plantas:54900, pedido:60000, proy_envio:45018, pct_envio:75.0, f_envio:'2026-06-20' },
-                  { lote:'L-2025-004', cliente:'AIB',           variedad:'Sweet Globe',        formato:'Barbada',  inj:20000, siembra:19400, dds:78,  plantas:19400, pedido:20000, proy_envio:15908, pct_envio:79.5, f_envio:'2026-07-02' },
-                  { lote:'L-2025-005', cliente:'SAMNSA',        variedad:'Sweet Globe',        formato:'Barbada',  inj:30000, siembra:27200, dds:14,  plantas:27200, pedido:30000, proy_envio:22304, pct_envio:74.3, f_envio:'2026-07-15' },
-                  { lote:'L-2025-007', cliente:'Agrolatina',    variedad:'Ruby Rush',          formato:'Bolsa',    inj:38080, siembra:35600, dds:56,  plantas:35600, pedido:38000, proy_envio:29192, pct_envio:76.8, f_envio:'2026-06-28' },
-                  { lote:'L-2025-008', cliente:'Parvina',       variedad:'Itum 16',            formato:'Bolsa',    inj:12000, siembra:11100, dds:22,  plantas:11100, pedido:12000, proy_envio:9102,  pct_envio:75.9, f_envio:'2026-07-10' },
-                ];
+                const SRC = (window.SIEMBRA_DATA || []);
+                const ENTREGAS = SRC.map(d => ({
+                  lote:      d.lote,
+                  cliente:   d.cliente,
+                  variedad:  d.variedad,
+                  formato:   d.formato,
+                  inj:       d.cant_injertacion,
+                  siembra:   d.cant_siembra,
+                  dds:       d.dds,
+                  plantas:   d.cant_siembra,
+                  pedido:    d.cant_pedido,
+                  proy_envio: d.cant_envio_proyectado || Math.round(d.cant_siembra * 0.82),
+                  pct_envio: d.pct_envio || Math.round((d.cant_siembra * 0.82 / d.cant_pedido) * 1000) / 10,
+                  f_envio:   d.fecha_envio,
+                }));
                 return ENTREGAS.map(r => {
                   const envioDate = new Date(r.f_envio);
                   const diffDays = Math.ceil((envioDate - today) / (1000*60*60*24));

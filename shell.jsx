@@ -78,7 +78,14 @@ function Sidebar({ profile, currentModule, setModule, onClose, isOpen }) {
                 onClick={() => { setModule(m.id); onClose && onClose(); }}>
                 <Icon name={m.icon} size={17} className="ico" />
                 <span>{m.label}</span>
-                {m.id==='quality' && <span className="badge">3</span>}
+                {m.id==='quality' && (() => {
+                  const today = new Date();
+                  const count = (window.SIEMBRA_DATA || []).filter(d => {
+                    const diff = Math.ceil((new Date(d.fecha_envio) - today) / (1000*60*60*24));
+                    return diff >= 0 && diff <= 3;
+                  }).length;
+                  return count > 0 ? <span className="badge">{count}</span> : null;
+                })()}
               </button>
             ))}
           </React.Fragment>

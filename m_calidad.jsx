@@ -16,12 +16,14 @@ function exportToExcel(data, filename, sheetName) {
 
 // ─── Datos demo para dashboard ───
 const SIEMBRA_DATA = [
-  { lote:'L-2025-001', variedad:'Timpson',           cant_injertacion:62832, cant_siembra:60100, pct_siembra:95.7, fecha_envio:'2026-06-18', cliente:'Agrolatina',    cant_pedido:58000 },
-  { lote:'L-2025-002', variedad:'Autumn Crisp',      cant_injertacion:64240, cant_siembra:61800, pct_siembra:96.2, fecha_envio:'2026-06-14', cliente:'Don Guillermo', cant_pedido:65000 },
-  { lote:'L-2025-003', variedad:'Sweet Celebration', cant_injertacion:62070, cant_siembra:54900, pct_siembra:88.4, fecha_envio:'2026-06-20', cliente:'Danper',        cant_pedido:60000 },
-  { lote:'L-2025-004', variedad:'Sweet Globe',       cant_injertacion:20000, cant_siembra:19400, pct_siembra:97.0, fecha_envio:'2026-07-02', cliente:'AIB',           cant_pedido:20000 },
-  { lote:'L-2025-005', variedad:'Sweet Globe',       cant_injertacion:30000, cant_siembra:27200, pct_siembra:90.7, fecha_envio:'2026-07-15', cliente:'SAMNSA',        cant_pedido:30000 },
-  { lote:'L-2025-007', variedad:'Ruby Rush',         cant_injertacion:38080, cant_siembra:35600, pct_siembra:93.5, fecha_envio:'2026-06-28', cliente:'Agrolatina',    cant_pedido:38000 },
+  { lote:'L-2025-001', variedad:'Timpson',           formato:'Bolsa',   dds:42, cant_injertacion:62832, cant_siembra:60100, pct_siembra:95.7, fecha_envio:'2026-06-18', cliente:'Agrolatina',    cant_pedido:58000 },
+  { lote:'L-2025-002', variedad:'Autumn Crisp',      formato:'Bolsa',   dds:28, cant_injertacion:64240, cant_siembra:61800, pct_siembra:96.2, fecha_envio:'2026-06-14', cliente:'Don Guillermo', cant_pedido:65000 },
+  { lote:'L-2025-003', variedad:'Sweet Celebration', formato:'Bolsa',   dds:65, cant_injertacion:62070, cant_siembra:54900, pct_siembra:88.4, fecha_envio:'2026-06-20', cliente:'Danper',        cant_pedido:60000 },
+  { lote:'L-2025-004', variedad:'Sweet Globe',       formato:'Bolsa',   dds:78, cant_injertacion:20000, cant_siembra:19400, pct_siembra:97.0, fecha_envio:'2026-07-02', cliente:'AIB',           cant_pedido:20000 },
+  { lote:'L-2025-005', variedad:'Sweet Globe',       formato:'Barbada', dds:14, cant_injertacion:30000, cant_siembra:27200, pct_siembra:90.7, fecha_envio:'2026-07-15', cliente:'SAMNSA',        cant_pedido:30000 },
+  { lote:'L-2025-006', variedad:'Autumn Crisp',      formato:'Barbada', dds:92, cant_injertacion:34000, cant_siembra:31800, pct_siembra:93.5, fecha_envio:'2026-06-03', cliente:'Don Luis',      cant_pedido:34000 },
+  { lote:'L-2025-007', variedad:'Ruby Rush',         formato:'Bolsa',   dds:56, cant_injertacion:38080, cant_siembra:35600, pct_siembra:93.5, fecha_envio:'2026-06-28', cliente:'Agrolatina',    cant_pedido:38000 },
+  { lote:'L-2025-008', variedad:'Itum 16',           formato:'Bolsa',   dds:22, cant_injertacion:12000, cant_siembra:11100, pct_siembra:92.5, fecha_envio:'2026-07-10', cliente:'Parvina',       cant_pedido:12000 },
 ];
 
 // % envío = cuánto del pedido comprometido se pudo cumplir (cant_siembra * 0.82 / cant_pedido)
@@ -786,3 +788,4 @@ window.ModuleCalidad = ModuleCalidad;
 window.ModuleCalidadDashboard = ModuleCalidadDashboard;
 window.QualityForm = QualityForm;
 window.FORM_SCHEMAS = FORM_SCHEMAS;
+window.SIEMBRA_DATA = SIEMBRA_DATA;
